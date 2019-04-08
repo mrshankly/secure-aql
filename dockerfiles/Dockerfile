@@ -1,6 +1,6 @@
 FROM erlang:19
 
-MAINTAINER Pedro Lopes <pms.lopes@campus.fct.unl.pt>
+MAINTAINER Pedro Costa <pd.costa@campus.fct.unl.pt>
 
 ENV AQL_REL "/opt/AQL"
 ENV HANDOFF_PORT "8099"
@@ -13,7 +13,7 @@ ENV PLATFORM_DATA_DIR "data"
 ENV NODE_NAME "aql@127.0.0.1"
 ENV SHORT_NAME "false"
 ENV DEBUG_MODE "false"
-ENV AQL_REPO "https://github.com/pedromslopes/AQL.git"
+ENV AQL_REPO "https://github.com/PDCosta/AQL.git"
 ENV AQL_BRANCH "master"
 
 #AQL
