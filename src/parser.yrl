@@ -9,6 +9,8 @@ admin
 show_query
 %select
 select_query projection select_fields
+%join
+join_clauses join_clause
 %where
 where_clauses where_clause comparison
 %insert
@@ -38,6 +40,8 @@ show tables
 index indexes on
 %select
 select wildcard from
+%
+join
 %where
 where
 %comparison
@@ -152,6 +156,19 @@ select_fields ->
 select_fields ->
 	atom :
 	['$1'].
+
+%%--------------------------------------------------------------------
+%% join clause
+%%--------------------------------------------------------------------
+
+join_clauses ->
+	join_clauses conjunctive join_clauses :
+	lists:append(['$1', ['$2'], '$3']).
+
+join_clauses ->
+	join_clause :
+		['$1'].
+
 
 %%--------------------------------------------------------------------
 %% where clause

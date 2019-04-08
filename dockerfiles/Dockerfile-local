@@ -1,6 +1,6 @@
 FROM erlang:19
 
-MAINTAINER Pedro Lopes <pms.lopes@campus.fct.unl.pt>
+MAINTAINER Pedro Costa <pd.costa@campus.fct.unl.pt>
 
 ENV AQL_REL "/opt/AQL"
 ENV HANDOFF_PORT "8099"

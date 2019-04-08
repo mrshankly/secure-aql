@@ -25,6 +25,10 @@
 -define(FROM_TOKEN, from).
 -define(FROM_CLAUSE(TokenChars), {?FROM_TOKEN, TokenChars}).
 
+%join
+-define(JOIN_TOKEN, join).
+-define(JOIN_CLAUSE(TokenChars), {?JOIN_TOKEN, TokenChars}).
+
 % where
 -define(WHERE_TOKEN, where).
 -define(WHERE_CLAUSE(TokenChars), {?WHERE_TOKEN, TokenChars}).
