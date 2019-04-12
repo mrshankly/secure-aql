@@ -44,6 +44,9 @@ Rules.
 (and|AND) : {token, ?CONJUNCTIVE_KEY(TokenChars)}.
 (or|OR) : {token, ?DISJUNCTIVE_KEY(TokenChars)}.
 
+% join clause related tokens
+(join|JOIN) : {token, ?JOIN_CLAUSE(TokenChars)}.
+
 % insert query related tokens
 (insert|INSERT) : {token, ?INSERT_CLAUSE(TokenChars)}.
 (into|INTO) : {token, ?INTO_KEY(TokenChars)}.
