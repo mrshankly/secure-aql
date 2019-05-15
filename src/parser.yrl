@@ -169,9 +169,9 @@ join_clauses ->
 	join_clause :
 		['$1'].
 
-join_clause ->
-	join atom on join_clauses:
-	?JOIN_CLAUSE({'$1', '$2'}).
+%%join_clause ->
+%%	join atom on join_clauses:
+%%	?JOIN_CLAUSE({'$1', '$2'}).
 
 
 
@@ -535,10 +535,10 @@ select_where_test() ->
 	test_parser("SELECT a FROM Test WHERE (b >= 2 AND c = 3 OR d <> 4)"),
 	test_parser("SELECT a FROM Test WHERE (b <> 2 AND c < 3) OR d > 4").
 
-select_join_test() ->
-	test_parser("SELECT a FROM Test JOIN Test2"),
-	test_parser("SELECT a FROM Test JOIN Test2 ON Test2.a = Test.a"),
-	test_parser("SELECT a FROM Test JOIN Test2 ON Test2.a = Test.a JOIN Test3 ON Test3.a = Test2.a").
+%%select_join_test() ->
+%%	test_parser("SELECT a FROM Test JOIN Test2"),
+%%	test_parser("SELECT a FROM Test JOIN Test2 ON Test2.a = Test.a"),
+%%	test_parser("SELECT a FROM Test JOIN Test2 ON Test2.a = Test.a JOIN Test3 ON Test3.a = Test2.a").
 
 transaction_test() ->
     test_parser("BEGIN TRANSACTION"),
