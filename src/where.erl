@@ -26,3 +26,6 @@ evaluate(Table, [{_ClValue, Arop, Value} | T], TxId, Acc) ->
   end;
 evaluate(_Table, [], _TxId, Acc) ->
   Acc.
+
+
+

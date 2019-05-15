@@ -14,7 +14,7 @@ ENV NODE_NAME "aql@127.0.0.1"
 ENV SHORT_NAME "false"
 ENV DEBUG_MODE "false"
 ENV AQL_REPO "https://github.com/PDCosta/AQL.git"
-ENV AQL_BRANCH "master"
+ENV AQL_BRANCH "joins"
 
 #AQL
 RUN cd /usr/src \

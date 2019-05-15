@@ -171,7 +171,7 @@ join_clauses ->
 
 join_clause ->
 	join atom on join_clauses:
-	?JOIN_CLAUSE({'$3', '$5'}).
+	?JOIN_CLAUSE({'$1', '$2'}).
 
 
 
