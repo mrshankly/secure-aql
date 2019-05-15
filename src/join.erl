@@ -1,9 +1,9 @@
--module(join).
+%%-module(join).
 
--include("parser.hrl").
--include("aql.hrl").
+%%-include("parser.hrl").
+%%-include("aql.hrl").
 
--export([scan/3]).
+%%-export([scan/3]).
 
 %scan(Table, ?PARSER_WILDCARD, TxId, Table2) ->
 %  TName = table:name(Table),
