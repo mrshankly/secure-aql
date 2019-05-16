@@ -157,22 +157,21 @@ select_fields ->
 	atom :
 	['$1'].
 
+select_query ->
+	select projection from atom join join_clauses:
+		?SELECT_CLAUSE({'$4', '$2', '$6')
+
 %%--------------------------------------------------------------------
 %% join clause
 %%--------------------------------------------------------------------
 
-join_clauses ->
-	join_clauses conjunctive join_clauses :
-	lists:append(['$1', ['$2'], '$3']).
+join_clauses
+	join_clauses conjunctive join_clauses:
+	lists:append(['$1', ['$2'], '$3'])
 
 join_clauses ->
 	join_clause :
 		['$1'].
-
-%%join_clause ->
-%%	join atom on join_clauses:
-%%	?JOIN_CLAUSE({'$1', '$2'}).
-
 
 
 %%--------------------------------------------------------------------
