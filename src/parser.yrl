@@ -165,13 +165,29 @@ select_query ->
 %% join clause
 %%--------------------------------------------------------------------
 
-join_clauses
-	join_clauses conjunctive join_clauses:
-	lists:append(['$1', ['$2'], '$3'])
+join_clauses ->
+    join_clauses conjunctive join_clauses :
+    lists:append(['$1', ['$2'], '$3']).
 
 join_clauses ->
-	join_clause :
-		['$1'].
+    join_clauses disjunctive join_clauses :
+    lists:append(['$1', ['$2'], '$3']).
+
+join_clauses ->
+    start_list join_clauses conjunctive join_clauses end_list :
+    [lists:append(['$2', ['$3'], '$4'])].
+
+join_clauses ->
+    start_list join_clauses disjunctive join_clauses end_list :
+    [lists:append(['$2', ['$3'], '$4'])].
+
+join_clauses ->
+    join_clause :
+	['$1'].
+
+join_clause ->
+	atom comparison value :
+	{'$1', '$2', '$3'}.
 
 
 %%--------------------------------------------------------------------
