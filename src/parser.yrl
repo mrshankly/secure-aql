@@ -159,7 +159,7 @@ select_fields ->
 
 select_query ->
 	select projection from atom join join_clauses:
-		?SELECT_CLAUSE({'$4', '$2', '$6')
+		?SELECT_CLAUSE({'$4', '$2', '$6'}).
 
 %%--------------------------------------------------------------------
 %% join clause
