@@ -20,7 +20,7 @@
 %%====================================================================
 
 start_link() ->
-  supervisor:start_link({local, ?SERVER}, ?MODULE, []).
+    supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
 %%====================================================================
 %% Supervisor callbacks
@@ -28,16 +28,17 @@ start_link() ->
 
 %% Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
 init([]) ->
-  ElliOpts = [{callback, aql_http_handler}, {port, 3002}],
-  ElliSpec = {
-    fancy_http,
-    {elli, start_link, [ElliOpts]},
-    permanent,
-    5000,
-    worker,
-    [elli]},
+    ElliOpts = [{callback, aql_http_handler}, {port, 3002}],
+    ElliSpec = {
+        fancy_http,
+        {elli, start_link, [ElliOpts]},
+        permanent,
+        5000,
+        worker,
+        [elli]
+    },
 
-  {ok, {{one_for_one, 5, 10}, [ElliSpec]}}.
+    {ok, {{one_for_one, 5, 10}, [ElliSpec]}}.
 
 %%====================================================================
 %% Internal functions

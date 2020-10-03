@@ -39,29 +39,29 @@
 
 -spec start() -> {'ok', [atom()]}.
 start() ->
-  {ok, _} = application:ensure_all_started(aql).
+    {ok, _} = application:ensure_all_started(aql).
 
 -spec stop() -> ok.
 stop() ->
-  application:stop(aql).
+    application:stop(aql).
 
 -spec start_shell() -> term().
 start_shell() ->
-  start(),
-  aqlparser:start_shell().
+    start(),
+    aqlparser:start_shell().
 
 -spec query(query()) -> {ok, term(), term()} | {ok, term()} | {error, term(), term()}.
 query(Query) ->
-  aqlparser:parse({str, Query}).
+    aqlparser:parse({str, Query}).
 
 -spec query(query(), term()) -> {ok, term(), term()} | {ok, term()} | {error, term(), term()}.
 query(Query, Transaction) ->
-  aqlparser:parse({str, Query}, Transaction).
+    aqlparser:parse({str, Query}, Transaction).
 
 -spec read_file(term()) -> {ok, term(), term()} | {ok, term()}.
 read_file(Filename) ->
-  aqlparser:parse({file, Filename}).
+    aqlparser:parse({file, Filename}).
 
 -spec read_file(term(), term()) -> {ok, term(), term()} | {ok, term()}.
 read_file(Filename, Transaction) ->
-  aqlparser:parse({file, Filename}, Transaction).
+    aqlparser:parse({file, Filename}, Transaction).
