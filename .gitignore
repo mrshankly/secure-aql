@@ -20,4 +20,5 @@ antidote/
 .idea/
 aql.iml
 
-.dockerignore
+src/parser.erl
+src/scanner.erl
