@@ -1,5 +1,3 @@
-AQL_HOME = $(shell pwd)
-REBAR = $(AQL_HOME)/rebar3
 AQL = ./_build/default/lib/aql
 AQL_REL = ./_build/default/rel/aql
 NODE_NAME = 'aql@127.0.0.1'
@@ -35,29 +33,25 @@ dev:
 	$(SCRIPTS)/start_dev.sh
 
 compile:
-	$(REBAR) compile
+	rebar3 compile
 	mkdir -p _build/test/logs
 	
 clean:
-	$(REBAR) clean
+	rebar3 clean
 	
 release:
-	$(REBAR) release
+	rebar3 release
 
 relclean:
 	rm -rf _build/default/rel
 
 test:
-	$(REBAR) eunit --cover
-	$(REBAR) cover
+	rebar3 eunit --cover
+	rebar3 cover
 
 ct:
 	chmod +x $(SCRIPTS)/run_ct.sh; sync
 	$(SCRIPTS)/run_ct.sh $(TEST_LOGS) $(NODE_NAME) $(COOKIE)
 
-# style checks
-lint:
-	$(REBAR) as lint lint
-
 dialyzer:
-	$(REBAR) dialyzer
+	rebar3 dialyzer
