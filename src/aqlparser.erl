@@ -103,7 +103,6 @@ exec([], Acc, Tx) ->
 
 commit_transaction(Res, Tx) ->
 	CommitRes = antidote_handler:commit_transaction(Tx),
-	ok = antidote_handler:release_locks(es_locks, Tx),
 	case CommitRes of
 		{ok, _CT} ->
 			Res;
@@ -113,7 +112,6 @@ commit_transaction(Res, Tx) ->
 
 abort_transaction(Res, Tx) ->
 	AbortRes = antidote_handler:abort_transaction(Tx),
-	ok = antidote_handler:release_locks(es_locks, Tx),
 	case AbortRes of
     ok ->
 			Res;
@@ -157,7 +155,7 @@ exec(Query, undefined) ->
 			commit_transaction(Else, Tx)
 	catch
 		_:Exception ->
-      Error = antidote_handler:handleUpdateError(Exception),
+      Error = antidote_handler:handle_update_error(Exception),
       abort_transaction(ignore, Tx),
 			{error, Error, Tx}
 		%Reason ->
@@ -171,7 +169,7 @@ exec(Query, PassedTx) ->
 		Res -> Res
   catch
 		_:Exception ->
-      Error = antidote_handler:handleUpdateError(Exception),
+      Error = antidote_handler:handle_update_error(Exception),
 			abort_transaction(ignore, PassedTx),
 			{error, Error, PassedTx}
     %Reason ->

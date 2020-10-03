@@ -61,18 +61,17 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([start_transaction/0, start_transaction/2,
+-export([
+  start_transaction/0,
+  start_transaction/2,
   read_objects/2,
-  commit_transaction/1, abort_transaction/1,
+  commit_transaction/1,
+  abort_transaction/1,
   update_objects/2,
-  query_objects/2]).
-
-%% Locks
--export([get_locks/2,
+  query_objects/2,
   get_locks/3,
-  release_locks/2]).
-
--export([handleUpdateError/1]).
+  handle_update_error/1
+]).
 
 -spec start_transaction() -> {ok, txid()} | {error, reason()}.
 start_transaction() ->
@@ -131,57 +130,21 @@ query_objects(Filter, TxId) ->
   %call(query_objects, [Filter, TxId]).
   antidote:query_objects(Filter, TxId).
 
--spec get_locks([key()], txid()) -> ok.
-get_locks(Locks, TxId) ->
-  %Res = call(get_locks, [?LOCK_WAIT_TIME, Locks, TxId]),
-  Res = antidote:get_locks(?LOCK_WAIT_TIME, Locks, TxId),
-  case Res of
-    {ok, _} -> ok;
-    {locks_not_available, Keys} ->
-      ErrorMsg = io_lib:format("One or more locks are not available: ~p", [Keys]),
-      throw(lists:flatten(ErrorMsg));
-    {locks_in_use, UsedLocks} ->
-      FilterNotThisTx =
-        lists:filter(fun({TxId0, _LockList}) -> TxId0 /= TxId end, UsedLocks),
-      case FilterNotThisTx of
-        [] -> ok;
-        _ ->
-          ErrorMsg = io_lib:format("One or more exclusive locks are being used by other transactions: ~p", [FilterNotThisTx]),
-          throw(lists:flatten(ErrorMsg))
-      end
-  end.
-
 -spec get_locks([key()], [key()], txid()) -> ok.
 get_locks(SharedLocks, ExclusiveLocks, TxId) ->
-  %Res = call(get_locks, [?LOCK_WAIT_TIME_ES, SharedLocks, ExclusiveLocks, TxId]),
-  Res = antidote:get_locks(?LOCK_WAIT_TIME_ES, SharedLocks, ExclusiveLocks, TxId),
+  %Res = call(get_locks, [SharedLocks, ExclusiveLocks, TxId]),
+  Res = antidote:get_locks(SharedLocks, ExclusiveLocks, TxId),
   case Res of
-    {ok, _} -> ok;
-    {locks_not_available, Keys} ->
-      ErrorMsg = io_lib:format("One or more locks are not available: ~p", [Keys]),
-      throw(lists:flatten(ErrorMsg));
-    {locks_in_use, {UsedExclusive, _UsedShared}} ->
-      FilterNotThisTx =
-        lists:filter(fun({TxId0, _LockList}) -> TxId0 /= TxId end, UsedExclusive),
-      case FilterNotThisTx of
-        [] -> ok;
-        _ ->
-          ErrorMsg = io_lib:format("One or more exclusive locks are being used by other transactions: ~p", [FilterNotThisTx]),
-          throw(lists:flatten(ErrorMsg))
-      end
+    {ok, _SnapshotTime} ->
+      ok;
+    {error, Reason} ->
+      throw(Reason)
   end.
 
--spec release_locks(locks | es_locks, txid()) -> ok.
-release_locks(Type, TxId) ->
-  %Res = call(release_locks, [Type, TxId]),
-  Res = antidote:release_locks(Type, TxId),
-  Res.
-
-handleUpdateError({{{badmatch, {error, no_permissions}}, _}, _}) ->
+handle_update_error({{{badmatch, {error, no_permissions}}, _}, _}) ->
   "A numeric invariant has been breached.";
-handleUpdateError(Msg) ->
+handle_update_error(Msg) ->
   Msg.
-
 
 %% ====================================================================
 %% Internal functions
