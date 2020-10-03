@@ -20,5 +20,8 @@ antidote/
 .idea/
 aql.iml
 
+src/aql_pb.erl
+include/aql_pb.hrl
+
 src/parser.erl
 src/scanner.erl
