@@ -12,6 +12,8 @@ SCRIPTS = ./scripts
 
 .PHONY: all test clean antidote
 
+all: compile
+
 shell:
 	chmod u+x $(SCRIPTS)/rebar_shell.sh; sync
 	$(SCRIPTS)/rebar_shell.sh
