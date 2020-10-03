@@ -12,11 +12,11 @@ SCRIPTS = ./scripts
 
 all: compile
 
-shell:
+shell: release
 	chmod u+x $(SCRIPTS)/rebar_shell.sh; sync
 	$(SCRIPTS)/rebar_shell.sh
 
-aqlshell: compile
+aqlshell: release
 	chmod u+x $(SCRIPTS)/start_shell.sh; sync
 	$(SCRIPTS)/start_shell.sh
 

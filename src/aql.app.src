@@ -1,21 +1,9 @@
 {application, aql, [
-    {description, "An OTP application"},
+    {description, "An SQL interface for AntidoteDB"},
     {vsn, "0.1.0"},
     {registered, []},
     {mod, {aql_app, []}},
-    {applications, [
-        kernel,
-        stdlib,
-        crypto,
-        antidote_crdt,
-        elli,
-        jsx,
-        antidote
-    ]},
+    {applications, [kernel, stdlib, crypto, ranch, antidote]},
     {env, []},
-    {modules, []},
-
-    {maintainers, []},
-    {licenses, []},
-    {links, []}
+    {modules, []}
 ]}.

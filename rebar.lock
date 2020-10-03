@@ -30,7 +30,7 @@
  {<<"prometheus_process_collector">>,
   {pkg,<<"prometheus_process_collector">>,<<"1.6.0">>},
   2},
- {<<"ranch">>,{pkg,<<"ranch">>,<<"2.0.0">>},1},
+ {<<"ranch">>,{pkg,<<"ranch">>,<<"2.0.0">>},0},
  {<<"riak_core">>,{pkg,<<"riak_core_lite">>,<<"0.10.1">>},1},
  {<<"vectorclock">>,{pkg,<<"vectorclock">>,<<"0.2.0">>},1}]}.
 [

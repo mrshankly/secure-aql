@@ -1,45 +1,28 @@
-%%%-------------------------------------------------------------------
-%% @doc aql top level supervisor.
-%% @end
-%%%-------------------------------------------------------------------
-
 -module(aql_sup).
 
 -behaviour(supervisor).
 
-%% API
 -export([start_link/0]).
-
-%% Supervisor callbacks
 -export([init/1]).
 
--define(SERVER, ?MODULE).
-
-%%====================================================================
-%% API functions
-%%====================================================================
+-include_lib("kernel/include/logger.hrl").
 
 start_link() ->
-    supervisor:start_link({local, ?SERVER}, ?MODULE, []).
+    supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
-%%====================================================================
-%% Supervisor callbacks
-%%====================================================================
-
-%% Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
 init([]) ->
-    ElliOpts = [{callback, aql_http_handler}, {port, 3002}],
-    ElliSpec = {
-        fancy_http,
-        {elli, start_link, [ElliOpts]},
-        permanent,
-        5000,
-        worker,
-        [elli]
+    SupervisorFlags = #{
+        strategy => one_for_one,
+        intensity => 1,
+        period => 5
     },
 
-    {ok, {{one_for_one, 5, 10}, [ElliSpec]}}.
+    ListenerSpec = ranch:child_spec(
+        aql_listener,
+        ranch_tcp,
+        [{port, 8321}],
+        aql_protocol,
+        []
+    ),
 
-%%====================================================================
-%% Internal functions
-%%====================================================================
+    {ok, {SupervisorFlags, [ListenerSpec]}}.
