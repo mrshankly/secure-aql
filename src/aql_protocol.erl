@@ -31,9 +31,20 @@ loop(Socket, Transport) ->
     end.
 
 handle_message(Socket, Transport, _Request = #'Request'{type = 'QUERY', query = Query}) ->
-    % Echo query.
-    Transport:send(Socket, Query),
-    ok;
+    Response =
+        case aql:query(binary_to_list(Query)) of
+            {ok, []} ->
+                #'QueryResponse'{response = <<"ok">>};
+            {ok, Result} ->
+                #'QueryResponse'{response = list_to_binary(Result)};
+            {ok, [], _Transaction} ->
+                #'QueryResponse'{response = <<"ok">>};
+            {ok, Result, _Transaction} ->
+                #'QueryResponse'{response = list_to_binary(Result)};
+            {error, Reason} ->
+                #'QueryResponse'{error = term_to_binary(Reason)}
+        end,
+    Transport:send(Socket, aql_pb:encode_msg(Response));
 handle_message(_Socket, _Transport, Request) ->
     ?LOG_INFO("unknown request: ~p", [Request]),
     ok.
