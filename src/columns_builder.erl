@@ -82,18 +82,18 @@ new_test() ->
     ?assertEqual({maps:new(), [], [], []}, new()).
 
 put_raw_test() ->
-    Col = ?T_COL("Test", ?AQL_INTEGER, ?NO_CONSTRAINT),
+    Col = ?T_COL("Test", ?AQL_INTEGER, ?NO_ENCRYPTION, ?NO_CONSTRAINT),
     Expected = {#{"Test" => Col}, ["Test"], [], []},
     ?assertEqual(Expected, put_raw(Col, new())).
 
 put_raw_pk_test() ->
-    Col = ?T_COL("Test", ?AQL_INTEGER, ?PRIMARY_TOKEN),
+    Col = ?T_COL("Test", ?AQL_INTEGER, ?NO_ENCRYPTION, ?PRIMARY_TOKEN),
     Expected = {#{"Test" => Col}, ["Test"], ["Test"], []},
     ?assertEqual(Expected, put_raw(Col, new())).
 
 build_test() ->
-    Col1 = ?T_COL("Test1", ?AQL_INTEGER, ?PRIMARY_TOKEN),
-    Col2 = ?T_COL("Test2", ?AQL_VARCHAR, ?NO_CONSTRAINT),
+    Col1 = ?T_COL("Test1", ?AQL_INTEGER, ?NO_ENCRYPTION, ?PRIMARY_TOKEN),
+    Col2 = ?T_COL("Test2", ?AQL_VARCHAR, ?NO_ENCRYPTION, ?NO_CONSTRAINT),
     Expected = #{
         "Test1" => Col1,
         "Test2" => Col2,

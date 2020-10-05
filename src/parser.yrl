@@ -52,7 +52,7 @@ insert into values
 delete
 %create
 create table partition crp primary foreign key references default check
-attribute_type cascade
+attribute_type attribute_encryption_type cascade
 %update
 update set
 %tx
@@ -322,12 +322,20 @@ create_keys ->
 	['$1'].
 
 attribute ->
+	attribute_name attribute_type attribute_encryption_type attribute_constraint:
+	?T_COL('$1', unwrap_type('$2'), unwrap_type('$3'), '$4').
+
+attribute ->
+	attribute_name attribute_type attribute_encryption_type:
+	?T_COL('$1', unwrap_type('$2'), unwrap_type('$3'), ?NO_CONSTRAINT).
+
+attribute ->
 	attribute_name attribute_type attribute_constraint :
-	?T_COL('$1', unwrap_type('$2'), '$3').
+	?T_COL('$1', unwrap_type('$2'), ?NO_ENCRYPTION, '$3').
 
 attribute ->
 	attribute_name attribute_type :
-	?T_COL('$1', unwrap_type('$2'), ?NO_CONSTRAINT).
+	?T_COL('$1', unwrap_type('$2'), ?NO_ENCRYPTION, ?NO_CONSTRAINT).
 
 attribute_constraint ->
 	primary key :

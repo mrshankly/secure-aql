@@ -12,6 +12,10 @@
 -define(C_NAMES, {names}).
 -define(C_PK, {pk}).
 
+% Encryption types.
+-define(AQL_ENCRYPTED, encrypted).
+-define(AQL_OP_ENCRYPTED, order_preserving_encrypted).
+
 % AQL -> CRDT mappings
 -define(AQL_INTEGER, integer).
 -define(CRDT_INTEGER, antidote_crdt_register_lww).

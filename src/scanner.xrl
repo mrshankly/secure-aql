@@ -99,6 +99,10 @@ Rules.
 (int|INT|integer|INTEGER) : {token, ?ATTR_KEY(?AQL_INTEGER)}.
 (counter_int|COUNTER_INT) : {token, ?ATTR_KEY(?AQL_COUNTER_INT)}.
 
+% attribute encryption types
+(enc|ENC) : {token, ?ATTR_ENC(?AQL_ENCRYPTED)}.
+(openc|OPENC) : {token, ?ATTR_ENC(?AQL_OP_ENCRYPTED)}.
+
 % boolean atoms
 (false|FALSE) : {token, ?PARSER_BOOLEAN(false)}.
 (true|TRUE) : {token, ?PARSER_BOOLEAN(true)}.

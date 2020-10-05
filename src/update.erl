@@ -179,9 +179,9 @@ set_partition(Col, Value, BoundObj, Table) ->
             BoundObj
     end.
 
-counter_functions(increment, ?T_COL(_, _, ?CHECK_KEY(_))) ->
+counter_functions(increment, ?T_COL(_, _, _, ?CHECK_KEY(_))) ->
     {fun crdt:increment_bcounter/1, fun crdt:decrement_bcounter/1};
-counter_functions(decrement, ?T_COL(_, _, ?CHECK_KEY(_))) ->
+counter_functions(decrement, ?T_COL(_, _, _, ?CHECK_KEY(_))) ->
     {fun crdt:decrement_bcounter/1, fun crdt:increment_bcounter/1};
 counter_functions(increment, _) ->
     {fun crdt:increment_counter/1, fun crdt:decrement_counter/1};
@@ -247,7 +247,7 @@ version_op(Record, Table) ->
 
 -ifdef(TEST).
 create_column_aux(CName, CType) ->
-    ?T_COL(CName, CType, ?NO_CONSTRAINT).
+    ?T_COL(CName, CType, ?NO_ENCRYPTION, ?NO_CONSTRAINT).
 
 resolve_op_varchar_test() ->
     Table = ?T_TABLE(table, undef, [], [], [], []),

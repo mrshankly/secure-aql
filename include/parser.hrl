@@ -87,6 +87,9 @@
 %% attributes
 -define(ATTR_TYPE_TOKEN, attribute_type).
 -define(ATTR_KEY(AttrType), {?ATTR_TYPE_TOKEN, AttrType}).
+-define(ATTR_ENC_TOKEN, attribute_encryption_type).
+-define(ATTR_ENC(AttrEncType), {?ATTR_ENC_TOKEN, AttrEncType}).
+-define(NO_ENCRYPTION, plain).
 %% table policies
 %-define(TABLE_POLICY_TOKEN, table_policy).
 %-define(TABLE_POLICY_KEY(Crp), {?TABLE_POLICY_TOKEN, Crp}).

@@ -106,14 +106,14 @@ create_key_from_table(PKey, Table, TxId) ->
     end.
 
 create_key_from_data(Data, Table) when is_list(Data) andalso ?is_table(Table) ->
-    [?T_COL(PkName, PkType, _PkConst)] = column:s_primary_key(Table),
+    [?T_COL(PkName, PkType, _PkEnc, _PkConst)] = column:s_primary_key(Table),
     Key = get(PkName, types:to_crdt(PkType, ignore), Data, Table),
     TName = table:name(Table),
 
     PartCol = table:partition_col(Table),
     case PartCol of
         [Col] ->
-            ?T_COL(ColName, ColType, _ColConst) = column:s_get(Table, Col),
+            ?T_COL(ColName, ColType, _ColEnc, _ColConst) = column:s_get(Table, Col),
             Value = get(ColName, types:to_crdt(ColType, ignore), Data, Table),
             Prefix = utils:to_hash(Value),
             create_key(Key, TName, Prefix);
@@ -217,7 +217,7 @@ set_if_primary(Col, Value, Element) ->
             Element
     end.
 
-set_if_partition(?T_COL(Col, _, _), Value, Element) ->
+set_if_partition(?T_COL(Col, _, _, _), Value, Element) ->
     Table = table(Element),
     case table:partition_col(Table) of
         [Col] ->

@@ -50,7 +50,7 @@ delete_cascade(Key, Table, Tables, TxId) ->
         1 ->
             [];
         _Else ->
-            [?T_COL(PkName, PkAQLType, PkConst)] = column:s_primary_key(Table),
+            [?T_COL(PkName, PkAQLType, _PkEnc, PkConst)] = column:s_primary_key(Table),
             RawKey = element:get(PkName, types:to_crdt(PkAQLType, PkConst), Data, Table),
             delete_cascade_dependants({Key, RawKey}, Table, Tables, TxId)
     end.
@@ -118,7 +118,7 @@ fetch_cascade(
 ) when length(Name) == 1 ->
     [{TDepName, DepAttr}] = Name,
     DepTable = table:lookup(TDepName, Tables),
-    [?T_COL(DepPkName, _, _)] = column:s_primary_key(DepTable),
+    [?T_COL(DepPkName, _, _, _)] = column:s_primary_key(DepTable),
     DepFilter = {TDepName, [DepPkName], [{DepAttr, ?PARSER_EQUALITY, RawKey}]},
     {ok, DependantRows} = select:exec({DepTable, ignore}, DepFilter, TxId),
 
@@ -154,7 +154,7 @@ fetch_cascade(
 ) when length(Name) == 1 ->
     [{TDepName, DepAttr}] = Name,
     DepTable = table:lookup(TDepName, Tables),
-    [?T_COL(DepPkName, _, _)] = column:s_primary_key(DepTable),
+    [?T_COL(DepPkName, _, _, _)] = column:s_primary_key(DepTable),
     DepFilter = {TDepName, [DepPkName], [{DepAttr, ?PARSER_EQUALITY, RawKey}]},
     {ok, DependantRows} = select:exec({DepTable, ignore}, DepFilter, TxId),
 
