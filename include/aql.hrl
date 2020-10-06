@@ -2,6 +2,9 @@
 -define(MAP_KEY(Key, Type), {Key, Type}).
 -define(BOUND_OBJECT(Key, Crdt, Bucket), {Key, Crdt, Bucket}).
 
+-define(TABLE_META, ?BOUND_OBJECT('#tables', antidote_crdt_map_go, ?METADATA_BUCKET)).
+-define(META_CRDT_TYPE, antidote_crdt_register_lww).
+
 -define(IGNORE_OP, ignore).
 
 -define(ADD_WINS, add).

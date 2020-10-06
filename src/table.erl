@@ -8,9 +8,6 @@
 -include("aql.hrl").
 -include("types.hrl").
 
--define(TABLE_META, ?BOUND_OBJECT('#tables', antidote_crdt_map_go, ?METADATA_BUCKET)).
--define(CRDT_TYPE, antidote_crdt_register_lww).
-
 -export([exec/2]).
 
 -export([
@@ -133,11 +130,11 @@ prepare_foreign_keys(Table, Tables) ->
 create_table_update(Table) ->
     Name = name(Table),
     Op = crdt:assign_lww(Table),
-    crdt:single_map_update(?TABLE_META, Name, ?CRDT_TYPE, Op).
+    crdt:single_map_update(?TABLE_META, Name, ?META_CRDT_TYPE, Op).
 
 lookup(Name, Tables, ErrMsg) ->
     NameAtom = utils:to_atom(Name),
-    Res = proplists:get_value(?MAP_KEY(NameAtom, ?CRDT_TYPE), Tables),
+    Res = proplists:get_value(?MAP_KEY(NameAtom, ?META_CRDT_TYPE), Tables),
     case Res of
         undefined ->
             throw(ErrMsg);
