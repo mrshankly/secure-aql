@@ -33,7 +33,7 @@ loop(Socket, Transport) ->
     end.
 
 handle_message(Socket, Transport, #'Request'{type = 'QUERY', query = Query}) ->
-    Response = run_query(binary_to_list(Query)),
+    Response = run_query(binary_to_term(Query)),
     Transport:send(Socket, aql_pb:encode_msg(Response));
 handle_message(Socket, Transport, #'Request'{type = 'METADATA', tables = Tables}) ->
     Response = get_metadata(split_tables(Tables)),
@@ -43,7 +43,7 @@ handle_message(Socket, Transport, #'Request'{
     query = Query,
     tables = Tables
 }) ->
-    Response = get_metadata(run_query(binary_to_list(Query)), split_tables(Tables)),
+    Response = get_metadata(run_query(binary_to_term(Query)), split_tables(Tables)),
     Transport:send(Socket, aql_pb:encode_msg(Response));
 handle_message(_Socket, _Transport, Request) ->
     ?LOG_INFO("unknown request: ~p", [Request]),
@@ -56,7 +56,7 @@ run_query(Query) ->
     run_query(#'Response'{}, Query).
 
 run_query(Response, Query) ->
-    case aql:query(binary_to_list(Query)) of
+    case aqlparser:execute_query(Query) of
         {ok, []} ->
             Response#'Response'{query = <<"ok">>};
         {ok, Result} ->

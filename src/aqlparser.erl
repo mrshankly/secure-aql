@@ -14,7 +14,7 @@
 %-define(DEFAULT_NODE, 'antidote@127.0.0.1').
 
 %% Application callbacks
--export([parse/1, parse/2, start_shell/0]).
+-export([parse/1, parse/2, start_shell/0, execute_query/2]).
 
 %%====================================================================
 %% API
@@ -68,6 +68,9 @@ read_and_exec(Tx) ->
         {ok, RetTx} ->
             read_and_exec(RetTx)
     end.
+
+execute_query(Query, Transaction) ->
+    exec([Query], [], Transaction).
 
 %%====================================================================
 %% Internal functions
