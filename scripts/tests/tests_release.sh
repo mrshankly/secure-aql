@@ -1,14 +1,14 @@
 #!/bin/bash
 
 CURR_DIR=$PWD
-AQL_HOME=~/Desktop/AQL
+AQL_HOME=~/thesis_src/secure-aql/
 AQL_REL=$AQL_HOME/_build/default/rel/aql
 
 source $1
 TESTNUM=$2
 TESTCONTENT=TEST$TESTNUM[@]
 TEST=("${!TESTCONTENT}")
-	
+
 ## Deleting the old database state
 function reset_db {
 	echo "> Resetting the database..."
@@ -20,7 +20,7 @@ function start_aql {
 	killall beam.smp
 	cd $AQL_HOME && make release
 	#$AQL_REL/bin/env start && tail -f $AQL_REL/log/console.log &
-	$AQL_REL/bin/env start && sleep 10 && tail -f $AQL_REL/log/console.log &
+	$AQL_REL/bin/env foreground && sleep 10 && tail -f $AQL_REL/log/console.log &
 	cd $CURR_DIR
 	sleep 10
 }
@@ -36,7 +36,7 @@ function create_db {
 
 		#eval $cmd
 		QUERY=$(echo "${array[$k]}" | sed -r 's/[*]/\\*/g')
-		$AQL_REL/bin/env eval "Res = aql:query(\"$QUERY\"), io:format(\"~p~n~n\", [Res])"
+		$AQL_REL/bin/env eval "Res = aql:query(\"$QUERY\"), io:format(\"~p~n~n\", [Res])."
 	done
 	tt=$((($(date +%s%N) - $ts)/1000000)) ; echo "Time elapsed: $tt milliseconds"
 	echo ""
@@ -53,7 +53,7 @@ function init_db {
 		#echo $cmd
 		#eval $cmd
 		QUERY=$(echo "${array[$k]}" | sed -r 's/[*]/\\*/g')
-		$AQL_REL/bin/env eval "Res = aql:query(\"$QUERY\"), io:format(\"~p~n~n\", [Res])"
+		$AQL_REL/bin/env eval "Res = aql:query(\"$QUERY\"), io:format(\"~p~n~n\", [Res])."
 	done
 	tt=$((($(date +%s%N) - $ts)/1000000)) ; echo "Time elapsed: $tt milliseconds"
 	echo ""
@@ -88,7 +88,7 @@ function querying_db {
 		#RESULT=$($QUERY_SCRIPT "${queries[$k]}")
 		ts=$(date +%s%N)
 		QUERY=$(echo "${queries[$k]}" | sed -r 's/[*]/\\*/g')
-		$AQL_REL/bin/env eval "Res = aql:query(\"$QUERY\"), io:format(\"~p~n~n\", [Res])"
+		$AQL_REL/bin/env eval "Res = aql:query(\"$QUERY\"), io:format(\"~p~n~n\", [Res])."
 		tt=$((($(date +%s%N) - $ts)/1000000)) ; echo "Time elapsed: $tt milliseconds"
 		#LEN=$((${#RESULT} - 2))
 		#IFS=',' read -ra result_split <<< "${RESULT:1:LEN}"

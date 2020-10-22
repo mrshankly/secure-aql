@@ -443,7 +443,7 @@ shared_read(Key, Table, TxId) ->
     TPolicy = table:policy(Table),
     case crp:p_dep_level(TPolicy) of
         ?NO_CONCURRENCY ->
-            lock_manager:acquire_shared_lock(BoundKey, TxId);
+            lock_manager:acquire_shared_lock(term_to_binary(BoundKey), TxId);
         _ ->
             ok
     end,
@@ -455,7 +455,7 @@ exclusive_read(Key, Table, TxId) ->
     TPolicy = table:policy(Table),
     case crp:p_dep_level(TPolicy) of
         ?NO_CONCURRENCY ->
-            lock_manager:acquire_exclusive_lock(BoundKey, TxId);
+            lock_manager:acquire_exclusive_lock(term_to_binary(BoundKey), TxId);
         _ ->
             ok
     end,
