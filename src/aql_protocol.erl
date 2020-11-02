@@ -53,18 +53,24 @@ split_tables(TableNames) ->
     lists:map(fun binary_to_atom/1, string:split(TableNames, ",", all)).
 
 run_query(Query) ->
-    run_query(#'Response'{}, Query).
+    {ok, Transaction} = antidote_handler:start_transaction(),
+    Response = run_query(#'Response'{}, Query, Transaction),
+    antidote_handler:commit_transaction(Transaction),
+    Response.
 
-run_query(Response, Query) ->
-    case aqlparser:execute_query(Query) of
+% run_query(Query, Transaction) ->
+%     run_query(#'Response'{}, Query, Transaction).
+
+run_query(Response, Query, Transaction) ->
+    case aqlparser:execute_query(Query, Transaction) of
         {ok, []} ->
             Response#'Response'{query = <<"ok">>};
         {ok, Result} ->
-            Response#'Response'{query = list_to_binary(Result)};
+            Response#'Response'{query = term_to_binary(Result)};
         {ok, [], _Transaction} ->
             Response#'Response'{query = <<"ok">>};
         {ok, Result, _Transaction} ->
-            Response#'Response'{query = list_to_binary(Result)};
+            Response#'Response'{query = term_to_binary(Result)};
         {error, Reason} ->
             Response#'Response'{query_error = term_to_binary(Reason)};
         {error, Reason, _Transaction} ->
