@@ -64,11 +64,11 @@ run_query(Query) ->
 run_query(Response, Query, Transaction) ->
     case aqlparser:execute_query(Query, Transaction) of
         {ok, []} ->
-            Response#'Response'{query = <<"ok">>};
+            Response#'Response'{query = term_to_binary(ok)};
         {ok, Result} ->
             Response#'Response'{query = term_to_binary(Result)};
         {ok, [], _Transaction} ->
-            Response#'Response'{query = <<"ok">>};
+            Response#'Response'{query = term_to_binary(ok)};
         {ok, Result, _Transaction} ->
             Response#'Response'{query = term_to_binary(Result)};
         {error, Reason} ->

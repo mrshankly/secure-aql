@@ -17,21 +17,27 @@
 
 % Encryption types.
 -define(AQL_ENCRYPTED, encrypted).
+-define(AQL_DT_ENCRYPTED, deterministic_encrypted).
 -define(AQL_OP_ENCRYPTED, order_preserving_encrypted).
+-define(AQL_HM_ENCRYPTED, homomorphic_encrypted).
 
 % AQL -> CRDT mappings
 -define(AQL_INTEGER, integer).
 -define(CRDT_INTEGER, antidote_crdt_register_lww).
+-define(SCRDT_INTEGER, antidote_crdt_secure_register_lww).
 
 -define(AQL_VARCHAR, varchar).
 -define(CRDT_VARCHAR, antidote_crdt_register_lww).
+-define(SCRDT_VARCHAR, antidote_crdt_secure_register_lww).
 
 -define(AQL_BOOLEAN, boolean).
 -define(CRDT_BOOLEAN, antidote_crdt_flag_ew).
+-define(SCRDT_BOOLEAN, antidote_crdt_secure_register_lww).
 
 -define(AQL_COUNTER_INT, counter_int).
 -define(CRDT_BCOUNTER_INT, antidote_crdt_counter_b).
 -define(CRDT_COUNTER_INT, antidote_crdt_counter_pn).
+-define(SCRDT_COUNTER_INT, antidote_crdt_secure_counter_pn).
 
 % types
 -export_type([input/0, queries/0, queryResult/0]).

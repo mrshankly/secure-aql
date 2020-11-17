@@ -11,4 +11,4 @@ fi
 
 # echo "Using AQL node name: $NODE_NAME"
 
-$AQL_REL/bin/env start && sleep 5 && $AQL_REL/bin/env eval "aql:start_shell()"
+$AQL_REL/bin/env daemon && sleep 5 && $AQL_REL/bin/env eval "aql:start_shell()."
