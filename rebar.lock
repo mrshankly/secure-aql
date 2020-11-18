@@ -1,10 +1,13 @@
 {"1.2.0",
 [{<<"accept">>,{pkg,<<"accept">>,<<"0.3.5">>},3},
  {<<"antidote_crdt">>,
-  {git,"https://github.com/AntidoteDB/antidote_crdt",
-       {ref,"4e2a439740f283bf22252f8f71c63ca28f0adb83"}},
+  {git,"https://github.com/mrshankly/antidote_crdt",
+       {ref,"0a43ed14e0ac7b48ecb5ff7422eabec107602dec"}},
   1},
- {<<"antidote_pb_codec">>,{pkg,<<"antidote_pb_codec">>,<<"0.1.2">>},1},
+ {<<"antidote_pb_codec">>,
+  {git,"https://github.com/mrshankly/antidote_pb_codec",
+       {ref,"a9e35a776c19a79fe8eeaa49cf8ae92bb10a23bb"}},
+  1},
  {<<"antidote_stats">>,
   {git,"https://github.com/AntidoteDB/antidote_stats",
        {ref,"c06f3ae90ab54d1c52c78ae36f780983d97e3e3a"}},
@@ -32,7 +35,6 @@
 [
 {pkg_hash,[
  {<<"accept">>, <<"B33B127ABCA7CC948BBE6CAA4C263369ABF1347CFA9D8E699C6D214660F10CD1">>},
- {<<"antidote_pb_codec">>, <<"ECF51F08EE1FEE0D6E82D1B4AE68811A89660A3D65DB90694A84275683AEF106">>},
  {<<"antidotec_pb">>, <<"40CD2A0A5F63284E6BB46C84B9D806A7682C79117CFC96154082A4C80759DD01">>},
  {<<"elli">>, <<"D7CC24CFA886AC6A51D369B2C974392BEC9CD1E1CAA3931194D2BF52B763D82F">>},
  {<<"elli_prometheus">>, <<"FD2C34A024D52AED2E5C6DBB99CA749F846C844DA3C266B667E36A3D574BC9FB">>},
@@ -45,7 +47,6 @@
  {<<"vectorclock">>, <<"6C4A9D44895F51BB99910DBE31FC691BF05FA6B2BF84986F6E3BDE4BD18F6CBA">>}]},
 {pkg_hash_ext,[
  {<<"accept">>, <<"11B18C220BCC2EAB63B5470C038EF10EB6783BCB1FCDB11AA4137DEFA5AC1BB8">>},
- {<<"antidote_pb_codec">>, <<"B8F655B5C2D074DEB1E170C9EE607A157B577F2DB064D212643487AEA684BB5B">>},
  {<<"antidotec_pb">>, <<"FEA4286BEEF84E65EA27983E65AD8347016F4657306D468224309C44AD28521C">>},
  {<<"elli">>, <<"290F85AB5610E20905B52F46EEAFC68F8EA0DA1923BC452D71210A8CD475FB35">>},
  {<<"elli_prometheus">>, <<"140F09B4B5368FF7D8E72CF1EE997B2AA149112FA7A07AE6A4251E144DDAE26F">>},
