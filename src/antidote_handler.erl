@@ -17,17 +17,22 @@
     antidote_crdt_counter_fat |
     antidote_crdt_map_go |
     antidote_crdt_set_go |
-    % | antidote_crdt_integer = deprecated
     antidote_crdt_register_lww |
     antidote_crdt_map_rr |
     antidote_crdt_register_mv |
     antidote_crdt_set_aw |
-    % | antidote_crdt_rga = deprecated
     antidote_crdt_set_rw |
     antidote_crdt_flag_ew |
     antidote_crdt_flag_dw |
     antidote_crdt_index_p |
-    antidote_crdt_index_s.
+    antidote_crdt_index_s |
+    antidote_crdt_secure_set_go |
+    antidote_crdt_secure_set_aw |
+    antidote_crdt_secure_set_rw |
+    antidote_crdt_secure_register_lww |
+    antidote_crdt_secure_register_mv |
+    antidote_crdt_secure_map_go |
+    antidote_crdt_secure_map_rr.
 
 -type bucket() :: atom().
 -type bound_object() :: {key(), crdt_type(), bucket()}.
@@ -66,6 +71,7 @@
 %% ====================================================================
 -export([
     start_transaction/0,
+    start_transaction/1,
     start_transaction/2,
     read_objects/2,
     commit_transaction/1,
@@ -79,6 +85,10 @@
 -spec start_transaction() -> {ok, txid()} | {error, reason()}.
 start_transaction() ->
     start_transaction(ignore, []).
+
+-spec start_transaction(properties()) -> {ok, txid()} | {error, reason()}.
+start_transaction(Props) ->
+    start_transaction(ignore, Props).
 
 -spec start_transaction(snapshot_time(), properties()) -> {ok, txid()} | {error, reason()}.
 start_transaction(Snapshot, Props) ->

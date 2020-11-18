@@ -36,6 +36,7 @@
 
 -define(AQL_COUNTER_INT, counter_int).
 -define(CRDT_BCOUNTER_INT, antidote_crdt_counter_b).
+-define(SCRDT_BCOUNTER_INT, antidote_crdt_counter_b).
 -define(CRDT_COUNTER_INT, antidote_crdt_counter_pn).
 -define(SCRDT_COUNTER_INT, antidote_crdt_secure_counter_pn).
 

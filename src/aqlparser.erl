@@ -126,7 +126,7 @@ abort_transaction(Res, Tx) ->
 exec(?BEGIN_CLAUSE(?TRANSACTION_TOKEN), PassedTx) ->
     case PassedTx of
         undefined ->
-            {ok, Tx} = antidote_handler:start_transaction(),
+            {ok, Tx} = antidote_handler:start_transaction([{certify, dont_certify}]),
             {ok, {begin_tx, Tx}};
         _Else ->
             {error, "There's already an ongoing transaction"}
@@ -148,7 +148,7 @@ exec(?ROLLBACK_CLAUSE(?TRANSACTION_TOKEN), PassedTX) ->
 exec(?QUIT_CLAUSE(_), _PassedTx) ->
     {ok, quit};
 exec(Query, undefined) ->
-    {ok, Tx} = antidote_handler:start_transaction(),
+    {ok, Tx} = antidote_handler:start_transaction([{certify, dont_certify}]),
     try execute(Query, Tx) of
         {error, _} = Res ->
             Res;

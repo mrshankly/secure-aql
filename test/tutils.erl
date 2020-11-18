@@ -101,7 +101,7 @@ delete_by_key(TName, Key) ->
 
 assertState(State, TName, Key) ->
     AQLKey = element:create_key(Key, TName),
-    {ok, TxId} = antidote_handler:start_transaction(),
+    {ok, TxId} = antidote_handler:start_transaction([{certify, dont_certify}]),
     Tables = table:read_tables(TxId),
     {ok, [Res]} = antidote_handler:read_objects(AQLKey, TxId),
     Actual = element:is_visible(Res, TName, Tables, TxId),
@@ -113,7 +113,7 @@ assertState(State, TName, Key) ->
 print_state(TName, Key) ->
     TNameAtom = utils:to_atom(TName),
     AQLKey = element:create_key(Key, TNameAtom),
-    {ok, TxId} = antidote_handler:start_transaction(),
+    {ok, TxId} = antidote_handler:start_transaction([{certify, dont_certify}]),
     Tables = table:read_tables(TxId),
     Table = table:lookup(TName, Tables),
     {ok, [Data]} = antidote_handler:read_objects(AQLKey, TxId),
@@ -122,7 +122,7 @@ print_state(TName, Key) ->
         fun(?T_FK(FkName, FkType, _, _, _)) ->
             FkValue = element:get(
                 foreign_keys:to_cname(FkName),
-                types:to_crdt(FkType, ignore),
+                types:to_crdt(FkType, plain, ignore),
                 Data,
                 Table
             ),
@@ -139,7 +139,7 @@ select_all(TName) ->
 
 assert_table_policy(Expected, TName) ->
     TNameAtom = utils:to_atom(TName),
-    {ok, TxId} = antidote_handler:start_transaction(),
+    {ok, TxId} = antidote_handler:start_transaction([{certify, dont_certify}]),
     Table = table:lookup(TNameAtom, TxId),
     antidote_handler:commit_transaction(TxId),
     ?assertEqual(Expected, table:policy(Table)).
@@ -148,7 +148,7 @@ assertExists(TName, Key) ->
     assertExists(element:create_key(Key, TName)).
 
 assertExists(Key) ->
-    {ok, Ref} = antidote_handler:start_transaction(),
+    {ok, Ref} = antidote_handler:start_transaction([{certify, dont_certify}]),
     {ok, [Res]} = antidote_handler:read_objects(Key, Ref),
     antidote_handler:commit_transaction(Ref),
     ?assertNotEqual([], Res).
@@ -157,7 +157,7 @@ assertNotExists(TName, Key) ->
     assertNotExists(element:create_key(Key, TName)).
 
 assertNotExists(Key) ->
-    {ok, Ref} = antidote_handler:start_transaction(),
+    {ok, Ref} = antidote_handler:start_transaction([{certify, dont_certify}]),
     {ok, [Res]} = antidote_handler:read_objects(Key, Ref),
     antidote_handler:commit_transaction(Ref),
     ?assertEqual([], Res).
@@ -178,13 +178,13 @@ read_keys(Table, ID, Keys) ->
     read_keys(Table, "ID", ID, Keys, undefined).
 
 read_keys(Keys) ->
-    {ok, Ref} = antidote_handler:start_transaction(),
+    {ok, Ref} = antidote_handler:start_transaction([{certify, dont_certify}]),
     {ok, Res} = antidote_handler:read_objects(Keys, Ref),
     antidote_handler:commit_transaction(Ref),
     Res.
 
 read_index(TName, IndexName) ->
-    {ok, Ref} = antidote_handler:start_transaction(),
+    {ok, Ref} = antidote_handler:start_transaction([{certify, dont_certify}]),
     IndexData = index:s_keys_formatted(TName, IndexName, Ref),
     antidote_handler:commit_transaction(Ref),
     IndexData.

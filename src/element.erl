@@ -106,15 +106,15 @@ create_key_from_table(PKey, Table, TxId) ->
     end.
 
 create_key_from_data(Data, Table) when is_list(Data) andalso ?is_table(Table) ->
-    [?T_COL(PkName, PkType, _PkEnc, _PkConst)] = column:s_primary_key(Table),
-    Key = get(PkName, types:to_crdt(PkType, ignore), Data, Table),
+    [?T_COL(PkName, PkType, PkEnc, _PkConst)] = column:s_primary_key(Table),
+    Key = get(PkName, types:to_crdt(PkType, PkEnc, ignore), Data, Table),
     TName = table:name(Table),
 
     PartCol = table:partition_col(Table),
     case PartCol of
         [Col] ->
-            ?T_COL(ColName, ColType, _ColEnc, _ColConst) = column:s_get(Table, Col),
-            Value = get(ColName, types:to_crdt(ColType, ignore), Data, Table),
+            ?T_COL(ColName, ColType, ColEnc, _ColConst) = column:s_get(Table, Col),
+            Value = get(ColName, types:to_crdt(ColType, ColEnc, ignore), Data, Table),
             Prefix = utils:to_hash(Value),
             create_key(Key, TName, Prefix);
         undefined ->
@@ -179,9 +179,10 @@ load_defaults(Element) ->
     Defaults = column:s_filter_defaults(Columns),
     maps:fold(
         fun(CName, Column, Acc) ->
+            EncryptionType = column:encryption_type(Column),
             {?DEFAULT_TOKEN, Value} = column:constraint(Column),
             Constraint = {?DEFAULT_TOKEN, Value},
-            append(CName, Value, column:type(Column), Constraint, Acc)
+            append(CName, Value, column:type(Column), EncryptionType, Constraint, Acc)
         end,
         Element,
         Defaults
@@ -202,10 +203,11 @@ put(ColName, Value, Element) ->
             throwNoSuchColumn(ColName, TName);
         Col ->
             ColType = column:type(Col),
+            EncryptionType = column:encryption_type(Col),
             Constraint = column:constraint(Col),
             Element1 = set_if_primary(Col, Value, Element),
             Element2 = set_if_partition(Col, Value, Element1),
-            append(ColName, Value, ColType, Constraint, Element2)
+            append(ColName, Value, ColType, EncryptionType, Constraint, Element2)
     end.
 
 set_if_primary(Col, Value, Element) ->
@@ -264,7 +266,8 @@ build_fks(Element, Parents) ->
                     {Parent, _} = dict:fetch({FkTable, ParentId}, Parents),
                     Value = get_by_name(foreign_keys:to_cname(FkColName), Parent),
                     ParentVersion = get_by_name(?VERSION, Parent),
-                    append(FkName, {Value, ParentVersion}, ?AQL_VARCHAR, ?IGNORE_OP, AccElement);
+                    % TODO check encryption type
+                    append(FkName, {Value, ParentVersion}, ?AQL_VARCHAR, plain, ?IGNORE_OP, AccElement);
                 _Else ->
                     %[{_, ParentId} | ParentCol] = FkName,
                     %Parent = dict:fetch({FkTable, ParentId}, Parents),
@@ -284,7 +287,8 @@ parents(Data, Table, Tables, TxId) ->
             case Name of
                 [ShCol] ->
                     {_FkTable, FkName} = ShCol,
-                    Value = get(FkName, types:to_crdt(Type, ?IGNORE_OP), Data, Table),
+                    % TODO: check encryption type
+                    Value = get(FkName, types:to_crdt(Type, plain, ?IGNORE_OP), Data, Table),
                     RefTable = table:lookup(TTName, Tables),
                     Parent = shared_read(Value, RefTable, TxId),
                     case element:is_visible(Parent, TTName, Tables, TxId) of
@@ -316,8 +320,9 @@ get(ColName, Element) ->
     Columns = attributes(Element),
     Col = maps:get(ColName, Columns),
     AQL = column:type(Col),
+    EncryptionType = column:encryption_type(Col),
     Constraint = column:constraint(Col),
-    get(ColName, types:to_crdt(AQL, Constraint), Element).
+    get(ColName, types:to_crdt(AQL, EncryptionType, Constraint), Element).
 
 get(ColName, Crdt, Element) when ?is_element(Element) ->
     get(ColName, Crdt, data(Element), table(Element)).
@@ -334,8 +339,9 @@ get(ColName, Crdt, Data, Table) when is_atom(Crdt) ->
 get(ColName, Cols, Data, TName) ->
     Col = maps:get(ColName, Cols),
     AQL = column:type(Col),
+    EncryptionType = column:encryption_type(Col),
     Constraint = column:constraint(Col),
-    get(ColName, types:to_crdt(AQL, Constraint), Data, TName).
+    get(ColName, types:to_crdt(AQL, EncryptionType, Constraint), Data, TName).
 
 insert(Element) ->
     Ops = ops(Element),
@@ -346,12 +352,13 @@ insert(Element, TxId) ->
     Op = insert(Element),
     antidote_handler:update_objects(Op, TxId).
 
-append(Key, Value, AQL, Constraint, Element) ->
+append(Key, Value, AQL, EncryptionType, Constraint, Element) ->
     Data = data(Element),
     Ops = ops(Element),
     OffValue = apply_offset(Key, AQL, Constraint, Value),
-    OpKey = ?MAP_KEY(Key, types:to_crdt(AQL, Constraint)),
-    OpVal = types:to_insert_op(AQL, Constraint, OffValue),
+    CrdtType = types:to_crdt(AQL, EncryptionType, Constraint),
+    OpKey = ?MAP_KEY(Key, CrdtType),
+    OpVal = types:to_insert_op(CrdtType, Constraint, OffValue),
     case OpVal of
         ?IGNORE_OP ->
             Element;
@@ -378,7 +385,8 @@ foreign_keys(Fks, Element) when is_tuple(Element) ->
 foreign_keys(Fks, Data, TName) ->
     lists:map(
         fun(?T_FK(CName, CType, FkTable, FkAttr, DeleteRule)) ->
-            Value = get(CName, types:to_crdt(CType, ?IGNORE_OP), Data, TName),
+            % TODO check encryption type
+            Value = get(CName, types:to_crdt(CType, plain, ?IGNORE_OP), Data, TName),
             {{CName, CType}, {FkTable, FkAttr}, DeleteRule, Value}
         end,
         Fks
@@ -505,7 +513,7 @@ append_raw_test() ->
     Value = 9,
     Element = new(key, Table),
     % assert not fail
-    append('NationalRank', Value, ?AQL_INTEGER, ?IGNORE_OP, Element).
+    append('NationalRank', Value, ?AQL_INTEGER, plain, ?IGNORE_OP, Element).
 
 get_default_test() ->
     Table = eutils:create_table_aux(),

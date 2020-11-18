@@ -124,11 +124,12 @@ resolve_op(BoundObj, Column, ?DECREMENT_OP(_Tchars), Value, TName, Tables, TxId)
 resolve_op(Column, AQL, Op, Value, BoundObj, TName, Tables, TxId) ->
     CName = column:name(Column),
     CType = column:type(Column),
+    EncryptionType = column:encryption_type(Column),
     Constraint = column:constraint(Column),
     case CType of
         AQL ->
             FKUpdate = resolve_foreign_key({CName, CType, Constraint}, Value, TName, Tables, TxId),
-            Update = crdt:field_map_op(CName, types:to_crdt(AQL, Constraint), Op(Value)),
+            Update = crdt:field_map_op(CName, types:to_crdt(AQL, EncryptionType, Constraint), Op(Value)),
             NewKey = set_partition(CName, Value, BoundObj, table:lookup(TName, Tables)),
             {ok, NewKey, lists:flatten([Update], FKUpdate)};
         _Else ->
@@ -160,8 +161,9 @@ resolve_foreign_key({CName, _CType, ?FOREIGN_KEY(_) = FK}, FkValue, TName, Table
             ParentVersion = proplists:get_value(element:version_key(), Data),
             SendValue = {FkValue, ParentVersion},
 
-            OpKey = ?MAP_KEY([{TName, CName}], types:to_crdt(?AQL_VARCHAR, ?IGNORE_OP)),
-            OpVal = types:to_insert_op(?AQL_VARCHAR, ?IGNORE_OP, SendValue),
+            CrdtType = types:to_crdt(?AQL_VARCHAR, plain, ?IGNORE_OP),
+            OpKey = ?MAP_KEY([{TName, CName}], CrdtType),
+            OpVal = types:to_insert_op(CrdtType, ?IGNORE_OP, SendValue),
 
             [{OpKey, OpVal}]
     end;

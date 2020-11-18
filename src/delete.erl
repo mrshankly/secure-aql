@@ -50,8 +50,8 @@ delete_cascade(Key, Table, Tables, TxId) ->
         1 ->
             [];
         _Else ->
-            [?T_COL(PkName, PkAQLType, _PkEnc, PkConst)] = column:s_primary_key(Table),
-            RawKey = element:get(PkName, types:to_crdt(PkAQLType, PkConst), Data, Table),
+            [?T_COL(PkName, PkAQLType, PkEnc, PkConst)] = column:s_primary_key(Table),
+            RawKey = element:get(PkName, types:to_crdt(PkAQLType, PkEnc, PkConst), Data, Table),
             delete_cascade_dependants({Key, RawKey}, Table, Tables, TxId)
     end.
 

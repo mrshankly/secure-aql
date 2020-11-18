@@ -53,7 +53,7 @@ split_tables(TableNames) ->
     lists:map(fun binary_to_atom/1, string:split(TableNames, ",", all)).
 
 run_query(Query) ->
-    {ok, Transaction} = antidote_handler:start_transaction(),
+    {ok, Transaction} = antidote_handler:start_transaction([{certify, dont_certify}]),
     Response = run_query(#'Response'{}, Query, Transaction),
     antidote_handler:commit_transaction(Transaction),
     Response.
@@ -81,7 +81,7 @@ get_metadata(TableNames) ->
     get_metadata(#'Response'{}, TableNames).
 
 get_metadata(Response, TableNames) ->
-    {ok, Transaction} = antidote_handler:start_transaction(),
+    {ok, Transaction} = antidote_handler:start_transaction([{certify, dont_certify}]),
     Tables = table:read_tables(Transaction),
     antidote_handler:commit_transaction(Transaction),
 
