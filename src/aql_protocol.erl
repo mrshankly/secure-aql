@@ -35,12 +35,15 @@ loop(Socket, Transport) ->
 handle_message(Socket, Transport, #'Request'{type = 'QUERY', query = Query, transaction = Transaction}) when Transaction /= <<>> ->
     Response = run_query(binary_to_term(Query), binary_to_term(Transaction)),
     Transport:send(Socket, aql_pb:encode_msg(Response));
+
 handle_message(Socket, Transport, #'Request'{type = 'QUERY', query = Query}) ->
     Response = run_query(binary_to_term(Query)),
     Transport:send(Socket, aql_pb:encode_msg(Response));
+
 handle_message(Socket, Transport, #'Request'{type = 'METADATA', tables = Tables}) ->
     Response = get_metadata(split_tables(Tables)),
     Transport:send(Socket, aql_pb:encode_msg(Response));
+
 handle_message(Socket, Transport, #'Request'{
     type = 'QUERY_AND_METADATA',
     query = Query,
@@ -50,6 +53,7 @@ handle_message(Socket, Transport, #'Request'{
     Response0 = run_query(binary_to_term(Query), binary_to_term(Transaction)),
     Response = get_metadata(Response0, split_tables(Tables)),
     Transport:send(Socket, aql_pb:encode_msg(Response));
+
 handle_message(Socket, Transport, #'Request'{
     type = 'QUERY_AND_METADATA',
     query = Query,
@@ -57,6 +61,7 @@ handle_message(Socket, Transport, #'Request'{
 }) ->
     Response = get_metadata(run_query(binary_to_term(Query)), split_tables(Tables)),
     Transport:send(Socket, aql_pb:encode_msg(Response));
+
 handle_message(Socket, Transport, #'Request'{type = 'START_TRANSACTION'}) ->
     Response = case antidote_handler:start_transaction([{certify, dont_certify}]) of
         {ok, Transaction} ->
@@ -65,24 +70,28 @@ handle_message(Socket, Transport, #'Request'{type = 'START_TRANSACTION'}) ->
             #'StartTransactionResponse'{transaction_error = term_to_binary(Reason)}
     end,
     Transport:send(Socket, aql_pb:encode_msg(Response));
+
 handle_message(Socket, Transport, #'Request'{type = 'COMMIT_TRANSACTION', transaction = RawTransaction}) ->
     Transaction = binary_to_term(RawTransaction),
     Response = case antidote_handler:commit_transaction(Transaction) of
         {ok, _} ->
-            #'ACTransactionResponse'{error = <<>>};
+            #'ACTransactionResponse'{ok = true};
         {error, Reason} ->
-            #'ACTransactionResponse'{error = term_to_binary(Reason)}
+            #'ACTransactionResponse'{ok = false, error = term_to_binary(Reason)}
     end,
-    Transport:send(Socket, aql_pb:encode_msg(Response));
+    Result = Transport:send(Socket, aql_pb:encode_msg(Response)),
+    Result;
+
 handle_message(Socket, Transport, #'Request'{type = 'ABORT_TRANSACTION', transaction = RawTransaction}) ->
     Transaction = binary_to_term(RawTransaction),
     Response = case antidote_handler:abort_transaction(Transaction) of
         ok ->
-            #'ACTransactionResponse'{error = <<>>};
+            #'ACTransactionResponse'{ok = true};
         {error, Reason} ->
-            #'ACTransactionResponse'{error = term_to_binary(Reason)}
+            #'ACTransactionResponse'{ok = false, error = term_to_binary(Reason)}
     end,
     Transport:send(Socket, aql_pb:encode_msg(Response));
+
 handle_message(_Socket, _Transport, Request) ->
     ?LOG_INFO("unknown request: ~p", [Request]),
     ok.
