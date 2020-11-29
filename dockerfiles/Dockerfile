@@ -18,7 +18,7 @@ ENV AQL_BRANCH "tests"
 
 #AQL
 RUN cd /usr/src \
-  && git clone $AQL_REPO \
+  && git clone $AQL_REPO AQL \
   && cd AQL \
   && git checkout $AQL_BRANCH \
   && make release \
