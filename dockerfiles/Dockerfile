@@ -13,8 +13,8 @@ ENV PLATFORM_DATA_DIR "data"
 ENV NODE_NAME "aql@127.0.0.1"
 ENV SHORT_NAME "false"
 ENV DEBUG_MODE "false"
-ENV AQL_REPO "https://github.com/PDCosta/AQL.git"
-ENV AQL_BRANCH "joins"
+ENV AQL_REPO "https://github.com/mrshankly/secure-aql.git"
+ENV AQL_BRANCH "tests"
 
 #AQL
 RUN cd /usr/src \
