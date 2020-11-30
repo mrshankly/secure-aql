@@ -119,8 +119,9 @@ to_insert_op(antidote_crdt_counter_b, _Constraint, OpParam) ->
     crdt:increment_bcounter(OpParam);
 to_insert_op(antidote_crdt_counter_pn, _Constraint, OpParam) ->
     crdt:increment_counter(OpParam);
-to_insert_op(antidote_crdt_secure_counter_pn, _Constraint, _OpParam) ->
-    throw("TODO");
+to_insert_op(antidote_crdt_secure_counter_pn, _Constraint, OpParam) ->
+    {Ciphertext, NSquared} = binary_to_term(OpParam),
+    {increment, {Ciphertext, NSquared}};
 to_insert_op(Invalid, _Constraint, _OpParam) ->
     ErrorMsg = io_lib:format("No mapping available for: ~p", [Invalid]),
     throw(lists:flatten(ErrorMsg)).
