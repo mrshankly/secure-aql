@@ -149,26 +149,14 @@ exec(?QUIT_CLAUSE(_), _PassedTx) ->
     {ok, quit};
 exec(Query, undefined) ->
     {ok, Tx} = antidote_handler:start_transaction([{certify, dont_certify}]),
-    try execute(Query, Tx) of
-        {error, _} = Res ->
-            Res;
-        Else ->
-            commit_transaction(Else, Tx)
-    catch
-        _:Exception ->
-            Error = antidote_handler:handle_update_error(Exception),
-            abort_transaction(ignore, Tx),
-            {error, Error, Tx}
+    case execute(Query, Tx) of
+        {error, _} = Error ->
+            Error;
+        Result ->
+            commit_transaction(Result, Tx)
     end;
-exec(Query, PassedTx) ->
-    try execute(Query, PassedTx) of
-        Res -> Res
-    catch
-        _:Exception ->
-            Error = antidote_handler:handle_update_error(Exception),
-            abort_transaction(ignore, PassedTx),
-            {error, Error, PassedTx}
-    end.
+exec(Query, Transaction) ->
+    execute(Query, Transaction).
 
 execute(?SHOW_CLAUSE(?TABLES_TOKEN), Tx) ->
     Tables = table:read_tables(Tx),

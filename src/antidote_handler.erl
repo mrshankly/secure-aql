@@ -78,8 +78,7 @@
     abort_transaction/1,
     update_objects/2,
     query_objects/2,
-    get_locks/3,
-    handle_update_error/1
+    get_locks/3
 ]).
 
 -spec start_transaction() -> {ok, txid()} | {error, reason()}.
@@ -92,41 +91,18 @@ start_transaction(Props) ->
 
 -spec start_transaction(snapshot_time(), properties()) -> {ok, txid()} | {error, reason()}.
 start_transaction(Snapshot, Props) ->
-    %case call(start_transaction, [Snapshot, Props]) of
-    case antidote:start_transaction(Snapshot, Props) of
-        {ok, TxId} ->
-            {ok, TxId};
-        Else ->
-            Else
-    end.
+    antidote:start_transaction(Snapshot, Props).
 
 -spec commit_transaction(txid()) -> {ok, vectorclock()} | {error, reason()}.
 commit_transaction(TxId) ->
-    try
-        %call(commit_transaction, [TxId])
-        antidote:commit_transaction(TxId)
-    of
-        Res -> Res
-    catch
-        _:Exception ->
-            {error, Exception}
-    end.
+    antidote:commit_transaction(TxId).
 
 -spec abort_transaction(txid()) -> ok | {error, reason()}.
 abort_transaction(TxId) ->
-    try
-        %call(abort_transaction, [TxId])
-        antidote:abort_transaction(TxId)
-    of
-        Res -> Res
-    catch
-        _:Exception ->
-            {error, Exception}
-    end.
+    antidote:abort_transaction(TxId).
 
 -spec read_objects([bound_object()] | bound_object(), txid()) -> {ok, [term()]}.
 read_objects(Objects, TxId) when is_list(Objects) ->
-    %call(read_objects, [Objects, TxId]);
     antidote:read_objects(Objects, TxId);
 read_objects(Object, Ref) ->
     read_objects([Object], Ref).
@@ -137,19 +113,16 @@ read_objects(Object, Ref) ->
     txid()
 ) -> ok | {error, reason()}.
 update_objects(Objects, TxId) when is_list(Objects) ->
-    %call(update_objects, [Objects, TxId]);
     antidote:update_objects(Objects, TxId);
 update_objects(Object, Ref) ->
     update_objects([Object], Ref).
 
 -spec query_objects(filter(), txid()) -> {ok, [term()]} | {error, reason()}.
 query_objects(Filter, TxId) ->
-    %call(query_objects, [Filter, TxId]).
     antidote:query_objects(Filter, TxId).
 
 -spec get_locks([key()], [key()], txid()) -> ok.
 get_locks(SharedLocks, ExclusiveLocks, TxId) ->
-    %Res = call(get_locks, [SharedLocks, ExclusiveLocks, TxId]),
     Res = antidote:get_locks(SharedLocks, ExclusiveLocks, TxId),
     case Res of
         {ok, _SnapshotTime} ->
@@ -157,16 +130,3 @@ get_locks(SharedLocks, ExclusiveLocks, TxId) ->
         {error, Reason} ->
             throw(Reason)
     end.
-
-handle_update_error({{{badmatch, {error, no_permissions}}, _}, _}) ->
-    "A numeric invariant has been breached.";
-handle_update_error(Msg) ->
-    Msg.
-
-%% ====================================================================
-%% Internal functions
-%% ====================================================================
-
-% TODO keep for local testing (i.e. tests that don't use the application)
-%call(Function, Args) ->
-%	rpc:call(?NODE, antidote, Function, Args).
