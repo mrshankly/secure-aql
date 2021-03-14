@@ -4,6 +4,7 @@
 Definitions.
 
 WhiteSpace = ([\000-\s]|%.*)
+Comment = --.*?\n
 Equality = =
 NotEquality = (<>)
 Greater = >
@@ -25,6 +26,9 @@ String = '([^']*?)'
 %% Rules
 %%====================================================================
 Rules.
+
+% Ignore comments.
+{Comment} : skip_token.
 
 % show related tokens
 (show|SHOW) : {token, ?SHOW_CLAUSE(TokenChars)}.
@@ -129,6 +133,7 @@ Rules.
 {Minus} : {token, ?PARSER_MINUS}.
 {WildCard} : {token, ?PARSER_WILDCARD}.
 {WhiteSpace}+ : skip_token.
+{Comment} : skip_token.
 
 {StartList} : {token, ?PARSER_SLIST}.
 {EndList} : {token, ?PARSER_ELIST}.
