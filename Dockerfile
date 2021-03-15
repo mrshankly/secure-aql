@@ -11,7 +11,7 @@ RUN cp -r /aql-src/_build/default/rel/aql /aql/
 RUN rm -rf aql-src
 
 # Erlang/OTP configuration.
-ENV NODE_NAME "antidote_aql@antidote_aql"
+ENV NODE_NAME "antidote_aql@127.0.0.1"
 ENV COOKIE "secret"
 
 # AntidoteDB configuration.
