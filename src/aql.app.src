@@ -1,6 +1,6 @@
 {application, aql, [
     {description, "An SQL interface for AntidoteDB"},
-    {vsn, "0.1.0"},
+    {vsn, "0.2.0"},
     {registered, []},
     {mod, {aql_app, []}},
     {applications, [kernel, stdlib, crypto, ranch, antidote]},
