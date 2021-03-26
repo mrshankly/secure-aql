@@ -20,13 +20,13 @@ function start_aql {
 	killall beam.smp
 	cd $AQL_HOME && make release
 	#$AQL_REL/bin/env start && tail -f $AQL_REL/log/console.log &
-	$AQL_REL/bin/env foreground && sleep 10 && tail -f $AQL_REL/log/console.log &
+	$AQL_REL/bin/env foreground &
 	cd $CURR_DIR
 	sleep 10
 }
 
 ## Creating new tables into the database
-function create_db {	
+function create_db {
 	echo "> Creating the database..."
 	ts=$(date +%s%N) #; my_command ; tt=$((($(date +%s%N) - $ts)/1000000)) ; echo "Time elapsed: $tt milliseconds"
 	array=("${!1}")
@@ -77,7 +77,7 @@ function querying_db {
 	arg2=${!2}
 	IFS=';' read -ra queries <<< "$arg"
 	read -ra expected <<< "$arg2"
-	
+
 	#array=("${!1}")
 	for k in $(seq 0 $((${#queries[@]}-1))); do
 		inc=$((k + 1))
@@ -93,12 +93,12 @@ function querying_db {
 		#LEN=$((${#RESULT} - 2))
 		#IFS=',' read -ra result_split <<< "${RESULT:1:LEN}"
 		#if [ "${result_split[0]}" = "ok"]; then
-		#	PRINT=$(echo ${RESULT##*,})	
+		#	PRINT=$(echo ${RESULT##*,})
 		#	echo "${PRINT:1:$((${#PRINT} - 2))}"
 		#else
 		#	echo "error: $RESULT"
 		#fi
-		
+
 		#cmd="$EXEC_CMD '$aql_func' -s erlang halt"
 		#echo $cmd
 		#eval $cmd
