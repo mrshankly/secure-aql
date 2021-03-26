@@ -54,13 +54,8 @@ exec({Table, Tables}, Props, TxId) ->
 
     case UpdateMsg of
         ok ->
-            lists:foreach(
-                fun(Key) ->
-                    touch_cascade(Key, Table, Tables, TxId)
-                end,
-                NewKeys
-            ),
-            ok;
+            P = fun(Key, Len) -> touch_cascade(Key, Table, Tables, TxId), Len + 1 end,
+            {ok, lists:foldl(P, 0, NewKeys)};
         Msg ->
             Msg
     end.
