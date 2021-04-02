@@ -17,10 +17,11 @@ init([]) ->
         period => 5
     },
 
+    Port = application:get_env(aql, aql_pb_port, 8321),
     ListenerSpec = ranch:child_spec(
         aql_listener,
         ranch_tcp,
-        [{port, 8321}],
+        [{port, Port}],
         aql_protocol,
         []
     ),
