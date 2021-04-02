@@ -33,11 +33,19 @@ loop(Socket, Transport) ->
     end.
 
 handle_message(Socket, Transport, #'Request'{type = 'QUERY', query = Query, transaction = Transaction}) when Transaction /= <<>> ->
-    Response = run_query(binary_to_term(Query), binary_to_term(Transaction)),
+    Response = run_query(Query, binary_to_term(Transaction)),
     Transport:send(Socket, aql_pb:encode_msg(Response));
 
 handle_message(Socket, Transport, #'Request'{type = 'QUERY', query = Query}) ->
-    Response = run_query(binary_to_term(Query)),
+    Response = run_query(Query),
+    Transport:send(Socket, aql_pb:encode_msg(Response));
+
+handle_message(Socket, Transport, #'Request'{type = 'RAW_QUERY', raw_query = Query, transaction = Transaction}) when Transaction /= <<>> ->
+    Response = run_raw_query(binary_to_term(Query), binary_to_term(Transaction)),
+    Transport:send(Socket, aql_pb:encode_msg(Response));
+
+handle_message(Socket, Transport, #'Request'{type = 'RAW_QUERY', raw_query = Query}) ->
+    Response = run_raw_query(binary_to_term(Query)),
     Transport:send(Socket, aql_pb:encode_msg(Response));
 
 handle_message(Socket, Transport, #'Request'{type = 'METADATA', tables = Tables}) ->
@@ -45,21 +53,21 @@ handle_message(Socket, Transport, #'Request'{type = 'METADATA', tables = Tables}
     Transport:send(Socket, aql_pb:encode_msg(Response));
 
 handle_message(Socket, Transport, #'Request'{
-    type = 'QUERY_AND_METADATA',
-    query = Query,
+    type = 'RAW_QUERY_AND_METADATA',
+    raw_query = Query,
     tables = Tables,
     transaction = Transaction
 }) when Transaction /= <<>> ->
-    Response0 = run_query(binary_to_term(Query), binary_to_term(Transaction)),
+    Response0 = run_raw_query(binary_to_term(Query), binary_to_term(Transaction)),
     Response = get_metadata(Response0, split_tables(Tables)),
     Transport:send(Socket, aql_pb:encode_msg(Response));
 
 handle_message(Socket, Transport, #'Request'{
-    type = 'QUERY_AND_METADATA',
-    query = Query,
+    type = 'RAW_QUERY_AND_METADATA',
+    raw_query = Query,
     tables = Tables
 }) ->
-    Response = get_metadata(run_query(binary_to_term(Query)), split_tables(Tables)),
+    Response = get_metadata(run_raw_query(binary_to_term(Query)), split_tables(Tables)),
     Transport:send(Socket, aql_pb:encode_msg(Response));
 
 handle_message(Socket, Transport, #'Request'{type = 'START_TRANSACTION'}) ->
@@ -99,29 +107,73 @@ handle_message(_Socket, _Transport, Request) ->
 split_tables(TableNames) ->
     lists:map(fun binary_to_atom/1, string:split(TableNames, ",", all)).
 
+reason_to_binary(Reason) ->
+    list_to_binary(lists:flatten(io_lib:format("~p", [Reason]))).
+
+parse_query(Query) ->
+    case scanner:string(Query) of
+        {ok, Tokens, _} ->
+            parser:parse(Tokens);
+        Error ->
+            Error
+    end.
+
 run_query(Query) ->
     {ok, Transaction} = antidote_handler:start_transaction([{certify, dont_certify}]),
-    Response = run_query(#'Response'{}, Query, Transaction),
+    Response = run_query(Query, Transaction),
     antidote_handler:commit_transaction(Transaction),
     Response.
 
 run_query(Query, Transaction) ->
-    run_query(#'Response'{}, Query, Transaction).
+    case parse_query(Query) of
+        {ok, [AST]} ->
+            try
+                case aqlparser:execute_query(AST, Transaction) of
+                    {ok, Result} ->
+                        #'Response'{query = jsone:encode(Result)};
+                    {ok, Result, _Transaction} ->
+                        #'Response'{query = jsone:encode(Result)};
+                    {error, Reason} ->
+                        #'Response'{query_error = reason_to_binary(Reason)};
+                    {error, Reason, _Transaction} ->
+                        #'Response'{query_error = reason_to_binary(Reason)}
+                end
+            catch
+                _:Error ->
+                    #'Response'{query_error = reason_to_binary(Error)}
+            end;
+        {error, Reason, _Line} ->
+            #'Response'{query_error = reason_to_binary(Reason)}
+    end.
 
-run_query(Response, Query, Transaction) ->
-    case aqlparser:execute_query(Query, Transaction) of
-        {ok, []} ->
-            Response#'Response'{query = term_to_binary(ok)};
-        {ok, Result} ->
-            Response#'Response'{query = term_to_binary(Result)};
-        {ok, [], _Transaction} ->
-            Response#'Response'{query = term_to_binary(ok)};
-        {ok, Result, _Transaction} ->
-            Response#'Response'{query = term_to_binary(Result)};
-        {error, Reason} ->
-            Response#'Response'{query_error = term_to_binary(Reason)};
-        {error, Reason, _Transaction} ->
-            Response#'Response'{query_error = term_to_binary(Reason)}
+run_raw_query(Query) ->
+    {ok, Transaction} = antidote_handler:start_transaction([{certify, dont_certify}]),
+    Response = run_raw_query(#'Response'{}, Query, Transaction),
+    antidote_handler:commit_transaction(Transaction),
+    Response.
+
+run_raw_query(Query, Transaction) ->
+    run_raw_query(#'Response'{}, Query, Transaction).
+
+run_raw_query(Response, Query, Transaction) ->
+    try
+        case aqlparser:execute_query(Query, Transaction) of
+            {ok, []} ->
+                Response#'Response'{query = term_to_binary(ok)};
+            {ok, Result} ->
+                Response#'Response'{query = term_to_binary(Result)};
+            {ok, [], _Transaction} ->
+                Response#'Response'{query = term_to_binary(ok)};
+            {ok, Result, _Transaction} ->
+                Response#'Response'{query = term_to_binary(Result)};
+            {error, Reason} ->
+                Response#'Response'{query_error = term_to_binary(Reason)};
+            {error, Reason, _Transaction} ->
+                Response#'Response'{query_error = term_to_binary(Reason)}
+        end
+    catch
+        _:Error ->
+            Response#'Response'{query_error = term_to_binary(Error)}
     end.
 
 get_metadata(TableNames) ->

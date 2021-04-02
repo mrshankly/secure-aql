@@ -3,13 +3,9 @@
 -export([handle/2, handle_event/3]).
 
 -include_lib("elli/include/elli.hrl").
-
 -behaviour(elli_handler).
 
-%-define(DEFAULT_NODE, 'antidote@127.0.0.1').
-
 handle(Req, _Args) ->
-    %% Delegate to our handler function
     handle(Req#req.method, elli_request:path(Req), Req).
 
 handle('POST', [<<"aql">>], Req) ->
@@ -21,11 +17,11 @@ handle('POST', [<<"aql">>], Req) ->
             Result = aql:query(binary_to_list(Query)),
             case Result of
                 {ok, QueryRes} ->
-                    Encoded = jsx:encode(QueryRes),
+                    Encoded = jsone:encode(QueryRes),
                     io:format("Response: ~p~n", [Encoded]),
                     {ok, [], Encoded};
                 {ok, QueryRes, _Tx} ->
-                    Encoded = jsx:encode(QueryRes),
+                    Encoded = jsone:encode(QueryRes),
                     io:format("Response: ~p~n", [Encoded]),
                     {ok, [], Encoded};
                 {error, Message, _} ->
@@ -40,9 +36,3 @@ handle(_, _, _Req) ->
 %% thrown, client timeout, etc. Must return `ok'.
 handle_event(_Event, _Data, _Args) ->
     ok.
-
-%read_node(Req) ->
-%    case elli_request:post_arg_decoded(<<"node">>, Req, <<"undefined">>) of
-%        <<"undefined">> -> ?DEFAULT_NODE;
-%        Node -> list_to_atom(binary_to_list(Node))
-%    end.

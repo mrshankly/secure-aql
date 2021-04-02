@@ -17,13 +17,24 @@ init([]) ->
         period => 5
     },
 
-    Port = application:get_env(aql, aql_pb_port, 8321),
+    PbPort = application:get_env(aql, aql_pb_port, 8321),
     ListenerSpec = ranch:child_spec(
         aql_listener,
         ranch_tcp,
-        [{port, Port}],
+        [{port, PbPort}],
         aql_protocol,
         []
     ),
 
-    {ok, {SupervisorFlags, [ListenerSpec]}}.
+    HttpPort = application:get_env(aql, aql_http_port, 8322),
+    ElliOpts = [{callback, aql_http_handler}, {port, HttpPort}],
+    ElliSpec = {
+        fancy_http,
+        {elli, start_link, [ElliOpts]},
+        permanent,
+        5000,
+        worker,
+        [elli]
+    },
+
+    {ok, {SupervisorFlags, [ListenerSpec, ElliSpec]}}.
