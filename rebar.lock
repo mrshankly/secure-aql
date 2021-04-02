@@ -2,7 +2,7 @@
 [{<<"accept">>,{pkg,<<"accept">>,<<"0.3.5">>},3},
  {<<"antidote">>,
   {git,"https://github.com/mrshankly/antidote.git",
-       {ref,"ccea2ae067a091f521c16ab350329d2a6563e544"}},
+       {ref,"12c922f028f5f2630b3a57d5c0696d0a1e8a7205"}},
   0},
  {<<"antidote_crdt">>,
   {git,"https://github.com/mrshankly/antidote_crdt",
