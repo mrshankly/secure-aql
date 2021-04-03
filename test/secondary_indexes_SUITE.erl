@@ -83,7 +83,7 @@ insert_data_after(Config) ->
     insert_data(TestTable),
 
     IndexData = tutils:read_index(TestTable, IdxName),
-    ok = assert_index(IndexData, 4, [5, 10, 15, 20], [[a, e], [b, c], [d], [f, g]]).
+    ok = assert_index(IndexData, 4, [5, 10, 15, 20], [[aa, ee], [bb, cc], [dd], [ff, gg]]).
 
 insert_data_before(Config) ->
     TestTable = ?value(table, Config),
@@ -94,7 +94,7 @@ insert_data_before(Config) ->
     {ok, [], _Tx} = tutils:create_index(IdxName, TestTable, Column),
 
     IndexData = tutils:read_index(TestTable, IdxName),
-    ok = assert_index(IndexData, 4, [5, 10, 15, 20], [[a, e], [b, c], [d], [f, g]]).
+    ok = assert_index(IndexData, 4, [5, 10, 15, 20], [[aa, ee], [bb, cc], [dd], [ff, gg]]).
 
 bcounter_index(Config) ->
     TestTable = ?value(bcounter_table, Config),
@@ -105,10 +105,9 @@ bcounter_index(Config) ->
     insert_data(TestTable),
 
     IndexData = tutils:read_index(TestTable, IdxName),
-    ok = assert_index(IndexData, 4, [5, 10, 15, 20], [[a, e], [b, c], [d], [f, g]]),
-    %ok = assert_index(IndexData, 4, [4, 9, 14, 19], [[a, e], [b, c], [d], [f, g]]),
+    ok = assert_index(IndexData, 4, [5, 10, 15, 20], [[aa, ee], [bb, cc], [dd], [ff, gg]]),
 
-    Keys = ['a', 'b', 'c', 'd', 'e', 'f', 'g'],
+    Keys = [aa, bb, cc, dd, ee, ff, gg],
     Bounds = [5, 10, 10, 15, 5, 20, 20],
     reset_counters(Keys, ?PARSER_GREATER, Bounds, Config).
 
@@ -117,26 +116,23 @@ bcounter_index(Config) ->
 %% ====================================================================
 
 insert_data(TableName) ->
-    {ok, [], _Tx} = tutils:insert_single(TableName, "'a', 5"),
-    {ok, [], _Tx} = tutils:insert_single(TableName, "'b', 10"),
-    {ok, [], _Tx} = tutils:insert_single(TableName, "'c', 10"),
-    {ok, [], _Tx} = tutils:insert_single(TableName, "'d', 15"),
-    {ok, [], _Tx} = tutils:insert_single(TableName, "'e', 5"),
-    {ok, [], _Tx} = tutils:insert_single(TableName, "'f', 20"),
-    {ok, [], _Tx} = tutils:insert_single(TableName, "'g', 20").
+    {ok, [], _Tx} = tutils:insert_single(TableName, "'aa', 5"),
+    {ok, [], _Tx} = tutils:insert_single(TableName, "'bb', 10"),
+    {ok, [], _Tx} = tutils:insert_single(TableName, "'cc', 10"),
+    {ok, [], _Tx} = tutils:insert_single(TableName, "'dd', 15"),
+    {ok, [], _Tx} = tutils:insert_single(TableName, "'ee', 5"),
+    {ok, [], _Tx} = tutils:insert_single(TableName, "'ff', 20"),
+    {ok, [], _Tx} = tutils:insert_single(TableName, "'gg', 20").
 
 assert_index(IndexData, _ExpLen, IdxValues, ExpEntries) when
     length(IdxValues) == length(ExpEntries)
 ->
-    %?assertEqual(ExpLen, length(IndexData)),
     assert_multi(IndexData, IdxValues, ExpEntries).
 
 assert_multi(IndexData, [Val | ValList], [ExpEntry | ExpEntryList]) ->
     {ok, Entry} = orddict:find(Val, IndexData),
     PKeys = lists:map(fun({Key, _Type, _Bucket}) -> Key end, ordsets:to_list(Entry)),
-
     ?assertEqual(ExpEntry, PKeys),
-
     assert_multi(IndexData, ValList, ExpEntryList);
 assert_multi(_IndexData, [], []) ->
     ok.
@@ -149,7 +145,7 @@ reset_counters([Key | Keys], Comp, [Bound | Bounds], Config) ->
     Updates = gen_reset_updates(Key, Comp, InvBcA),
     Query = ?format(update_key(Comp), Updates, Config),
     ct:log(info, lists:concat(["Reseting counters: ", Query])),
-    {ok, [], _Tx} = tutils:aql(Query),
+    {ok, [1], _Tx} = tutils:aql(Query),
     reset_counters(Keys, Comp, Bounds, Config);
 reset_counters([], _Comp, [], _Config) ->
     ok.

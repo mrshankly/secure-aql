@@ -9,16 +9,11 @@ rel/example_project
 .concrete/DEV_MODE
 .rebar
 
-LICENSE
-
-TODO\.txt
-
 _build/
-
 antidote/
-
-.idea/
-aql.iml
+data_antidote/
+data_riak_core/
+logger_logs/
 
 src/aql_pb.erl
 include/aql_pb.hrl

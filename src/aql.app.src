@@ -3,7 +3,7 @@
     {vsn, "0.2.0"},
     {registered, []},
     {mod, {aql_app, []}},
-    {applications, [kernel, stdlib, crypto, ranch, antidote]},
+    {applications, [kernel, stdlib, crypto, ranch, antidote, jsone]},
     {env, []},
     {modules, []}
 ]}.

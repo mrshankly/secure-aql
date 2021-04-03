@@ -177,7 +177,7 @@ reset_counters([Key | Keys], Comp, [Bound | Bounds], Config) ->
     Updates = gen_reset_updates(Key, Comp, InvBcA),
     Query = ?format(update_key(Comp), Updates, Config),
     ct:log(info, lists:concat(["Reseting counters: ", Query])),
-    {ok, [], _Tx} = tutils:aql(Query),
+    {ok, [1], _Tx} = tutils:aql(Query),
     reset_counters(Keys, Comp, Bounds, Config);
 reset_counters([], _Comp, [], _Config) ->
     ok.

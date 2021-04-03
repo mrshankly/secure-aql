@@ -78,7 +78,8 @@
     abort_transaction/1,
     update_objects/2,
     query_objects/2,
-    get_locks/3
+    get_locks/3,
+    handle_update_error/1
 ]).
 
 -spec start_transaction() -> {ok, txid()} | {error, reason()}.
@@ -95,11 +96,21 @@ start_transaction(Snapshot, Props) ->
 
 -spec commit_transaction(txid()) -> {ok, vectorclock()} | {error, reason()}.
 commit_transaction(TxId) ->
-    antidote:commit_transaction(TxId).
+    try
+        antidote:commit_transaction(TxId)
+    catch
+        _:Reason ->
+            {error, Reason}
+    end.
 
 -spec abort_transaction(txid()) -> ok | {error, reason()}.
 abort_transaction(TxId) ->
-    antidote:abort_transaction(TxId).
+    try
+        antidote:abort_transaction(TxId)
+    catch
+        _:Reason ->
+            {error, Reason}
+    end.
 
 -spec read_objects([bound_object()] | bound_object(), txid()) -> {ok, [term()]}.
 read_objects(Objects, TxId) when is_list(Objects) ->
@@ -130,3 +141,8 @@ get_locks(SharedLocks, ExclusiveLocks, TxId) ->
         {error, Reason} ->
             throw(Reason)
     end.
+
+handle_update_error({{{badmatch, {error, no_permissions}}, _}, _}) ->
+    "A numeric invariant has been breached.";
+handle_update_error(Msg) ->
+    Msg.

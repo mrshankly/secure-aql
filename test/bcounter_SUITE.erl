@@ -153,14 +153,14 @@ greater_update_basic(Config) ->
     % inserts
     {ok, [], _Tx} = tutils:aql(?format(insert_greater, [Key, BoundA + 2, BoundB + 2], Config)),
     % increment
-    {ok, [], _Tx} = tutils:aql(?format(update_greater, ["+ 1", "+ 3", Key], Config)),
-    {ok, [], _Tx} = tutils:aql(?format(update_greater, ["+ 0", "+ 0", Key], Config)),
+    {ok, [1], _Tx} = tutils:aql(?format(update_greater, ["+ 1", "+ 3", Key], Config)),
+    {ok, [1], _Tx} = tutils:aql(?format(update_greater, ["+ 0", "+ 0", Key], Config)),
     [V1, V2] = tutils:read_keys(TName, Key, ["bcA", "bcB"]),
     ?assertEqual(BoundA + 3, V1),
     ?assertEqual(BoundB + 5, V2),
     % decrement
-    {ok, [], _Tx} = tutils:aql(?format(update_greater, ["- 2", "- 4", Key], Config)),
-    {ok, [], _Tx} = tutils:aql(?format(update_greater, ["- 0", "- 0", Key], Config)),
+    {ok, [1], _Tx} = tutils:aql(?format(update_greater, ["- 2", "- 4", Key], Config)),
+    {ok, [1], _Tx} = tutils:aql(?format(update_greater, ["- 0", "- 0", Key], Config)),
     [V3, V4] = tutils:read_keys(TName, Key, ["bcA", "bcB"]),
     ?assertEqual(BoundA + 1, V3),
     ?assertEqual(BoundB + 1, V4),
@@ -223,12 +223,12 @@ smaller_update_basic(Config) ->
     % inserts
     {ok, [], _Tx} = tutils:aql(?format(insert_smaller, [Key, BoundA - 3, BoundB - 3], Config)),
     % increment
-    {ok, [], _Tx} = tutils:aql(?format(update_smaller, ["+ 2", "+ 2", Key], Config)),
+    {ok, [1], _Tx} = tutils:aql(?format(update_smaller, ["+ 2", "+ 2", Key], Config)),
     [V1, V2] = tutils:read_keys(TName, Key, ["bcA", "bcB"]),
     ?assertEqual(BoundA - 1, V1),
     ?assertEqual(BoundB - 1, V2),
     % decrement
-    {ok, [], _Tx} = tutils:aql(?format(update_smaller, ["- 2", "- 4", Key], Config)),
+    {ok, [1], _Tx} = tutils:aql(?format(update_smaller, ["- 2", "- 4", Key], Config)),
     [V3, V4] = tutils:read_keys(TName, Key, ["bcA", "bcB"]),
     ?assertEqual(BoundA - 3, V3),
     ?assertEqual(BoundB - 5, V4),
@@ -265,7 +265,7 @@ reset_counters(Key, Comp, BcA, BcB, Config) ->
     Updates = gen_reset_updates(Key, Comp, InvBcA, InvBcB),
     Query = ?format(update_key(Comp), Updates, Config),
     ct:log(info, lists:concat(["Reseting counters: ", Query])),
-    {ok, [], _Tx} = tutils:aql(Query).
+    {ok, [1], _Tx} = tutils:aql(Query).
 
 update_key(?PARSER_GREATER) -> update_greater;
 update_key(?PARSER_LESSER) -> update_smaller.
