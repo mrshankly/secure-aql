@@ -86,24 +86,24 @@ exec([Query | Tail], Acc, Tx) ->
                 undefined -> ok;
                 _ -> abort_transaction(undefined, Tx)
             end,
-            {ok, lists:append(Acc, [Res]), quit};
+            {ok, lists:reverse([Res | Acc]), quit};
         {ok, {begin_tx, Tx2}} ->
-            exec(Tail, lists:append(Acc, [Res]), Tx2);
+            exec(Tail, [Res | Acc], Tx2);
         {ok, {commit_tx, Tx2}} ->
             CommitRes = commit_transaction({ok, commit_tx}, Tx2),
-            exec(Tail, lists:append(Acc, [CommitRes]), undefined);
+            exec(Tail, [CommitRes | Acc], undefined);
         {ok, {abort_tx, Tx2}} ->
             AbortRes = abort_transaction({ok, abort_tx}, Tx2),
-            exec(Tail, lists:append(Acc, [AbortRes]), undefined);
+            exec(Tail, [AbortRes | Acc], undefined);
         %{ok, NewNode} ->
         %	exec(Tail, Acc, NewNode, Tx);
         {error, Msg, _AbortedTx} ->
-            exec(Tail, lists:append(Acc, [{error, Msg}]), undefined);
+            exec(Tail, [{error, Msg} | Acc], undefined);
         Res ->
-            exec(Tail, lists:append(Acc, [Res]), Tx)
+            exec(Tail, [Res | Acc], Tx)
     end;
 exec([], Acc, Tx) ->
-    {ok, Acc, Tx}.
+    {ok, lists:reverse(Acc), Tx}.
 
 commit_transaction(Res, Tx) ->
     CommitRes = antidote_handler:commit_transaction(Tx),
