@@ -71,18 +71,7 @@ where({_TName, _Projection, Where}) -> Where.
 validate_projection(?PARSER_WILDCARD, Columns) ->
     {ok, Columns};
 validate_projection(Projection, Columns) ->
-    Invalid = lists:foldl(
-        fun(ProjCol, AccInvalid) ->
-            case lists:member(ProjCol, Columns) of
-                true ->
-                    AccInvalid;
-                false ->
-                    lists:append(AccInvalid, [ProjCol])
-            end
-        end,
-        [],
-        Projection
-    ),
+    Invalid = lists:filter(fun(PCol) -> not lists:member(PCol, Columns) end, Projection),
     case Invalid of
         [] ->
             {ok, Projection};
@@ -92,14 +81,14 @@ validate_projection(Projection, Columns) ->
     end.
 
 send_offset(?PARSER_WILDCARD, _Cols, Acc) ->
-    Acc;
+    lists:reverse(Acc);
 send_offset([{disjunctive, _} = Cond | Conds], Cols, Acc) ->
-    send_offset(Conds, Cols, lists:append(Acc, [Cond]));
+    send_offset(Conds, Cols, [Cond | Acc]);
 send_offset([{conjunctive, _} = Cond | Conds], Cols, Acc) ->
-    send_offset(Conds, Cols, lists:append(Acc, [Cond]));
+    send_offset(Conds, Cols, [Cond | Acc]);
 send_offset([Condition | Conds], Cols, Acc) when is_list(Condition) ->
     NewAcc = send_offset(Condition, Cols, []),
-    send_offset(Conds, Cols, lists:append(Acc, [NewAcc]));
+    send_offset(Conds, Cols, [NewAcc | Acc]);
 send_offset([Condition | Conds], Cols, Acc) ->
     ?CONDITION(FieldName, Comparator, Value) = Condition,
     Column = column:s_get(Cols, FieldName),
@@ -115,12 +104,12 @@ send_offset([Condition | Conds], Cols, Acc) ->
                 end,
             AQLCounterValue = bcounter:to_bcounter(Value, Offset, Comp),
             NewCond = ?CONDITION(FieldName, InvertComp, AQLCounterValue),
-            send_offset(Conds, Cols, lists:append(Acc, [NewCond]));
+            send_offset(Conds, Cols, [NewCond | Acc]);
         _Else ->
-            send_offset(Conds, Cols, lists:append(Acc, [Condition]))
+            send_offset(Conds, Cols, [Condition | Acc])
     end;
 send_offset([], _Cols, Acc) ->
-    Acc.
+    lists:reverse(Acc).
 
 invert_comparator(?PARSER_GREATER) -> ?PARSER_LESSER;
 invert_comparator(?PARSER_LESSER) -> ?PARSER_GREATER;

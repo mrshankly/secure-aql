@@ -190,18 +190,7 @@ tag_read(TName, CName, Value, TxId) ->
 
 check_keys(Table, Cols) ->
     TCols = column:s_names(Table),
-    lists:foldl(
-        fun(Col, Acc) ->
-            case lists:member(Col, TCols) of
-                false ->
-                    lists:append(Acc, [Col]);
-                true ->
-                    Acc
-            end
-        end,
-        [],
-        Cols
-    ).
+    lists:filter(fun(Col) -> not lists:member(Col, TCols) end, Cols).
 
 set_table_index(Idx, ?T_TABLE(Name, Policy, Cols, SCols, _Idx, PartCol)) ->
     ?T_TABLE(Name, Policy, Cols, SCols, Idx, PartCol).
