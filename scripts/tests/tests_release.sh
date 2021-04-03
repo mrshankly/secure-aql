@@ -1,26 +1,25 @@
 #!/bin/bash
 
-CURR_DIR=$PWD
-AQL_HOME=~/thesis_src/secure-aql/
-AQL_REL=$AQL_HOME/_build/default/rel/aql
+CURR_DIR="${PWD}"
+AQL_HOME="$(realpath ../../)"
+AQL_REL="${AQL_HOME}/_build/default/rel/aql"
 
-source $1
-TESTNUM=$2
+source "${1}"
+TESTNUM="${2}"
 TESTCONTENT=TEST$TESTNUM[@]
 TEST=("${!TESTCONTENT}")
 
 ## Deleting the old database state
 function reset_db {
 	echo "> Resetting the database..."
-	rm -rf $AQL_REL/*
+	rm -rf "${AQL_REL}"/*
 }
 
 function start_aql {
 	echo "> Starting the AQL node..."
 	killall beam.smp
-	cd $AQL_HOME && make release
-	#$AQL_REL/bin/env start && tail -f $AQL_REL/log/console.log &
-	$AQL_REL/bin/env foreground &
+	cd "${AQL_HOME}" && make release
+	"${AQL_REL}"/bin/env foreground &
 	cd $CURR_DIR
 	sleep 10
 }
@@ -36,7 +35,7 @@ function create_db {
 
 		#eval $cmd
 		QUERY=$(echo "${array[$k]}" | sed -r 's/[*]/\\*/g')
-		$AQL_REL/bin/env eval "Res = aql:query(\"$QUERY\"), io:format(\"~p~n~n\", [Res])."
+		"${AQL_REL}"/bin/env eval "Res = aql:query(\"$QUERY\"), io:format(\"~p~n~n\", [Res])."
 	done
 	tt=$((($(date +%s%N) - $ts)/1000000)) ; echo "Time elapsed: $tt milliseconds"
 	echo ""
@@ -53,7 +52,7 @@ function init_db {
 		#echo $cmd
 		#eval $cmd
 		QUERY=$(echo "${array[$k]}" | sed -r 's/[*]/\\*/g')
-		$AQL_REL/bin/env eval "Res = aql:query(\"$QUERY\"), io:format(\"~p~n~n\", [Res])."
+		"${AQL_REL}"/bin/env eval "Res = aql:query(\"$QUERY\"), io:format(\"~p~n~n\", [Res])."
 	done
 	tt=$((($(date +%s%N) - $ts)/1000000)) ; echo "Time elapsed: $tt milliseconds"
 	echo ""
@@ -63,8 +62,6 @@ function init_db {
 function build_query_command {
 	query="$1"
 	expected="$2"
-	#echo "Query: $query"
-	#echo "Expected: $expected"
 	local cmd="{ok, [Res], _} = aqlparser:parse({str, \"$query\"}, '\''$NODE_NAME'\'', $TX), "
 	cmd="$cmd case length(Res) of $expected -> io:format(\"{ok, ~p}~n~n\", [Res]);"
 	cmd="$cmd Else -> io:format(\"{error, {expected, $expected}, {got, ~p}}~n~n\", [Else]) end"
@@ -88,7 +85,7 @@ function querying_db {
 		#RESULT=$($QUERY_SCRIPT "${queries[$k]}")
 		ts=$(date +%s%N)
 		QUERY=$(echo "${queries[$k]}" | sed -r 's/[*]/\\*/g')
-		$AQL_REL/bin/env eval "Res = aql:query(\"$QUERY\"), io:format(\"~p~n~n\", [Res])."
+		"${AQL_REL}"/bin/env eval "Res = aql:query(\"$QUERY\"), io:format(\"~p~n~n\", [Res])."
 		tt=$((($(date +%s%N) - $ts)/1000000)) ; echo "Time elapsed: $tt milliseconds"
 		#LEN=$((${#RESULT} - 2))
 		#IFS=',' read -ra result_split <<< "${RESULT:1:LEN}"
@@ -109,7 +106,7 @@ function querying_db {
 
 function stop_db {
 	echo "> Stopping the AQL node..."
-	$AQL_REL/bin/env stop
+	"${AQL_REL}"/bin/env stop
 }
 
 reset_db && start_aql && create_db TEST[0] && init_db TEST[1] && querying_db TEST[2] TEST[3] && stop_db && echo "> Done."
