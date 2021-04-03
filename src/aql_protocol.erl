@@ -107,9 +107,6 @@ handle_message(_Socket, _Transport, Request) ->
 split_tables(TableNames) ->
     lists:map(fun binary_to_atom/1, string:split(TableNames, ",", all)).
 
-reason_to_binary(Reason) ->
-    list_to_binary(lists:flatten(io_lib:format("~p", [Reason]))).
-
 parse_query(Query) ->
     case scanner:string(Query) of
         {ok, Tokens, _} ->
@@ -130,20 +127,20 @@ run_query(Query, Transaction) ->
             try
                 case aqlparser:execute_query(AST, Transaction) of
                     {ok, Result} ->
-                        #'Response'{query = jsone:encode(Result)};
+                        #'Response'{query = jsone:encode(utils:result_strings_to_binary(Result))};
                     {ok, Result, _Transaction} ->
-                        #'Response'{query = jsone:encode(Result)};
+                        #'Response'{query = jsone:encode(utils:result_strings_to_binary(Result))};
                     {error, Reason} ->
-                        #'Response'{query_error = reason_to_binary(Reason)};
+                        #'Response'{query_error = utils:reason_to_binary(Reason)};
                     {error, Reason, _Transaction} ->
-                        #'Response'{query_error = reason_to_binary(Reason)}
+                        #'Response'{query_error = utils:reason_to_binary(Reason)}
                 end
             catch
                 _:Error ->
-                    #'Response'{query_error = reason_to_binary(Error)}
+                    #'Response'{query_error = utils:reason_to_binary(Error)}
             end;
         {error, Reason, _Line} ->
-            #'Response'{query_error = reason_to_binary(Reason)}
+            #'Response'{query_error = utils:reason_to_binary(Reason)}
     end.
 
 run_raw_query(Query) ->
@@ -159,21 +156,21 @@ run_raw_query(Response, Query, Transaction) ->
     try
         case aqlparser:execute_query(Query, Transaction) of
             {ok, []} ->
-                Response#'Response'{query = term_to_binary(ok)};
+                Response#'Response'{raw_query = term_to_binary(ok)};
             {ok, Result} ->
-                Response#'Response'{query = term_to_binary(Result)};
+                Response#'Response'{raw_query = term_to_binary(Result)};
             {ok, [], _Transaction} ->
-                Response#'Response'{query = term_to_binary(ok)};
+                Response#'Response'{raw_query = term_to_binary(ok)};
             {ok, Result, _Transaction} ->
-                Response#'Response'{query = term_to_binary(Result)};
+                Response#'Response'{raw_query = term_to_binary(Result)};
             {error, Reason} ->
-                Response#'Response'{query_error = term_to_binary(Reason)};
+                Response#'Response'{raw_query_error = term_to_binary(Reason)};
             {error, Reason, _Transaction} ->
-                Response#'Response'{query_error = term_to_binary(Reason)}
+                Response#'Response'{raw_query_error = term_to_binary(Reason)}
         end
     catch
         _:Error ->
-            Response#'Response'{query_error = term_to_binary(Error)}
+            Response#'Response'{raw_query_error = term_to_binary(Error)}
     end.
 
 get_metadata(TableNames) ->

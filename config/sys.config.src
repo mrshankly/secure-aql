@@ -104,5 +104,10 @@
 
   {cache, [
     {antidote_cache, [{type, set}, {policy, lru}, {ttl, 120}]}
+  ]},
+
+  {aql, [
+    {aql_pb_port, 8321},
+    {aql_http_port, 8322}
   ]}
 ].

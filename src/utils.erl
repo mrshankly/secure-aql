@@ -21,7 +21,9 @@
     seek_and_destroy/2,
     proplists_values/1,
     proplists_upsert/3,
-    to_hash/1
+    to_hash/1,
+    result_strings_to_binary/1,
+    reason_to_binary/1
 ]).
 
 to_atom(Term) when is_list(Term) ->
@@ -96,6 +98,34 @@ to_hash(Value) ->
     Hash = crypto:hash(md5, ToBinary),
     binary:decode_unsigned(Hash).
 
+result_strings_to_binary(QueryResults) when is_list(QueryResults) ->
+    result_strings_to_binary(QueryResults, []).
+
+result_strings_to_binary([QueryResult | Rest], Acc) when is_list(QueryResult) ->
+    StrToBinary = fun
+        ({Key, Value}) when is_list(Value) ->
+            {Key, list_to_binary(Value)};
+        (Pair = {_Key, _Value}) ->
+            Pair
+    end,
+    BinQueryResult = lists:map(
+        fun
+            (Row) when is_list(Row) ->
+                lists:map(StrToBinary, Row);
+            (Other) ->
+                Other
+        end,
+        QueryResult
+    ),
+    result_strings_to_binary(Rest, [BinQueryResult | Acc]);
+result_strings_to_binary([QueryResult | Rest], Acc) ->
+    result_strings_to_binary(Rest, [QueryResult | Acc]);
+result_strings_to_binary([], Acc) ->
+    lists:reverse(Acc).
+
+reason_to_binary(Reason) ->
+    list_to_binary(lists:flatten(io_lib:format("~p", [Reason]))).
+
 %%====================================================================
 %% Eunit tests
 %%====================================================================
@@ -107,5 +137,24 @@ assert_same_size_test() ->
     ?assertEqual(ok, assert_same_size([1, 2], [3, 4], ErrMsg)),
     ?assertEqual(ok, assert_same_size([], [], ErrMsg)),
     ?assertThrow(_, assert_same_size([1, 2, 3], [], ErrMsg)).
+
+result_strings_to_binary_test() ->
+    Result = [
+        ok,
+        {error, "not found"},
+        [
+            [{name, "John Doe"}, {age, 35}, {country, "USA"}],
+            [{name, "Jane Doe"}, {age, 33}, {country, "USA"}]
+        ]
+    ],
+    Expected = [
+        ok,
+        {error, "not found"},
+        [
+            [{name, <<"John Doe">>}, {age, 35}, {country, <<"USA">>}],
+            [{name, <<"Jane Doe">>}, {age, 33}, {country, <<"USA">>}]
+        ]
+    ],
+    ?assertEqual(result_strings_to_binary(Result), Expected).
 
 -endif.

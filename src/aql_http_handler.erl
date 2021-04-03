@@ -13,20 +13,17 @@ handle('POST', [<<"aql">>], Req) ->
         <<"undefined">> ->
             {400, [], <<"No query parameter in POST request body!">>};
         Query ->
-            io:format("Received query: ~p~n", [Query]),
-            Result = aql:query(binary_to_list(Query)),
-            case Result of
-                {ok, QueryRes} ->
-                    Encoded = jsone:encode(QueryRes),
-                    io:format("Response: ~p~n", [Encoded]),
+            case aql:query(binary_to_list(Query)) of
+                {ok, Result} ->
+                    Encoded = jsone:encode(utils:result_strings_to_binary(Result)),
                     {ok, [], Encoded};
-                {ok, QueryRes, _Tx} ->
-                    Encoded = jsone:encode(QueryRes),
-                    io:format("Response: ~p~n", [Encoded]),
+                {ok, Result, _Tx} ->
+                    Encoded = jsone:encode(utils:result_strings_to_binary(Result)),
                     {ok, [], Encoded};
-                {error, Message, _} ->
-                    ErrorMsg = lists:concat(["Error: ", Message]),
-                    {500, [], list_to_binary(ErrorMsg)}
+                {error, Reason} ->
+                    {500, [], utils:reason_to_binary(Reason)};
+                {error, Reason, _} ->
+                    {500, [], utils:reason_to_binary(Reason)}
             end
     end;
 handle(_, _, _Req) ->
