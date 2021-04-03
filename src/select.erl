@@ -176,7 +176,7 @@ visibility_condition(Table) ->
 % groups of elements
 apply_offset([Result | Results], Cols, Acc) when is_list(Result) ->
     Result1 = apply_offset(Result, Cols, []),
-    apply_offset(Results, Cols, Acc ++ [Result1]);
+    apply_offset(Results, Cols, [Result1 | Acc]);
 % groups of columns
 apply_offset([{{'#st', _T}, _} | Values], Cols, Acc) ->
     apply_offset(Values, Cols, Acc);
@@ -188,14 +188,12 @@ apply_offset([{{Key, Type}, V} | Values], Cols, Acc) ->
     case {Type, Cons} of
         {?CRDT_BCOUNTER_INT, ?CHECK_KEY({_Key, ?COMPARATOR_KEY(Comp), Offset})} ->
             AQLCounterValue = bcounter:from_bcounter(Comp, V, Offset),
-            NewAcc = lists:append(Acc, [{Key, AQLCounterValue}]),
-            apply_offset(Values, Cols, NewAcc);
+            apply_offset(Values, Cols, [{Key, AQLCounterValue} | Acc]);
         _Else ->
-            NewAcc = lists:append(Acc, [{Key, V}]),
-            apply_offset(Values, Cols, NewAcc)
+            apply_offset(Values, Cols, [{Key, V} | Acc])
     end;
 apply_offset([], _Cols, Acc) ->
-    Acc.
+    lists:reverse(Acc).
 
 group_conjunctions(?PARSER_WILDCARD) ->
     [];
@@ -213,25 +211,25 @@ group_conjunctions([Comp | Tail], [{conjunctive, _} | Tail2], Curr, Final) ->
             true -> {sub, group_conjunctions(Comp)};
             false -> Comp
         end,
-    group_conjunctions(Tail, Tail2, lists:append(Curr, [Conj]), Final);
+    group_conjunctions(Tail, Tail2, [Conj | Curr], Final);
 group_conjunctions([Comp | Tail], [{disjunctive, _} | Tail2], Curr, Final) ->
     Conj =
         case is_list(Comp) of
             true -> {sub, group_conjunctions(Comp)};
             false -> Comp
         end,
-    group_conjunctions(Tail, Tail2, [Conj], lists:append(Final, [Curr]));
+    group_conjunctions(Tail, Tail2, [Conj], [lists:reverse(Curr) | Final]);
 group_conjunctions([], [], Curr, Final) ->
-    {disjunction, lists:append(Final, [Curr])}.
+    {disjunction, lists:reverse([lists:reverse(Curr) | Final])}.
 
 separate_conditions([{conjunctive, _} = Conn | Tail], {Conditions, Connectors}) ->
-    separate_conditions(Tail, {Conditions, lists:append(Connectors, [Conn])});
+    separate_conditions(Tail, {Conditions, [Conn | Connectors]});
 separate_conditions([{disjunctive, _} = Conn | Tail], {Conditions, Connectors}) ->
-    separate_conditions(Tail, {Conditions, lists:append(Connectors, [Conn])});
+    separate_conditions(Tail, {Conditions, [Conn | Connectors]});
 separate_conditions([Cond | Tail], {Conditions, Connectors}) ->
-    separate_conditions(Tail, {lists:append(Conditions, [Cond]), Connectors});
-separate_conditions([], Acc) ->
-    Acc.
+    separate_conditions(Tail, {[Cond | Conditions], Connectors});
+separate_conditions([], {Conditions, Connectors}) ->
+    {lists:reverse(Conditions), lists:reverse(Connectors)}.
 
 %%====================================================================
 %% Eunit tests

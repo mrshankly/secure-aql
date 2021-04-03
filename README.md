@@ -2,72 +2,85 @@
 
 An SQL-like interface for [AntidoteDB](https://github.com/antidotedb/antidote).
 
-## Installation
+## Building
 
-AQL can be used through Docker (recommended), or directly through rebar3.
+**NOTE:** At the moment, this repository does not work with the upstream version of AntidoteDB, it only works with this version [https://github.com/mrshankly/antidote/tree/aql-strong-consistency-3-patched](https://github.com/mrshankly/antidote/tree/aql-strong-consistency-3-patched). Rebar should fetch the correct version, you should not need to worry about this unless you want to modify the AntidoteDB code that AQL uses.
 
-### Docker
+You will need to install [Erlang/OTP](https://www.erlang.org/) and [rebar3](https://rebar3.org/).
+The code was tested with Erlang/OTP 23.2 and rebar3 version 3.14.1.
 
-To use AQL through Docker simply pull the image from Docker Hub
-[here](https://hub.docker.com/r/pedromslopes/aql/). If docker can't 
-pull the latest version of the image, do it manually by:
+Once you have erlang and rebar3 installed and working, clone this repository and run:
 
-```
-    docker pull pedromslopes/aql:<latest-version-available>
-```
-
-This image starts an AntidoteDB server 
-(uses [this](https://hub.docker.com/r/pedromslopes/antidotedb/) image) on
-background and runs an AQL instance of top.
-Strictly speaking, AQL and AntidoteDB represent a single system, where AQL communicates
-with AntidoteDB via local calls.
-
-This is the recommended way of running AQL, at least for single-client use.
-
-### Rebar3
-This project can also be installed "manually" through Rebar3. In order to do so,
-clone this repository and checkout this branch:
-
-```
-    $ git clone https://github.com/pedromslopes/AQL
-    $ cd AQL && git checkout master
+```shell
+$ make
 ```
 
-Open a terminal in the project folder (`cd AQL`) and then compile the project:
+This will compile the code and build a release. Run the unit tests along with
+the ct tests to make sure that everything is working:
 
-```
-    $ make release
+```shell
+$ make test ct
 ```
 
-Now, to run the client, you may start in shell mode by running one of the following commands:
+There a few extra tests available, although they are a bit cumbersome to run. To run the script from a different directory you will need to define the `AQL_HOME` environment variable, which should contain the path to AQL's repository.
 
+```shell
+$ cd scripts/tests
+$ ./tests_release.sh tests_release.config [NUM_TEST]
 ```
-    $ make aqlshell
-```
-or
-```
-    $ make shell
-```
-The first command starts a native AQL shell where you can issue AQL queries to the database. To see
-which queries you can use, read the section API bellow.
-The second command starts an Erlang shell where you can write native Erlang commands and call
-directly exported functions from the modules supported by the AQL application. Use this
-shell if you are aware of the AQL internal structure.
 
-Both commands start an HTTP server for communication with AQL in background. The
-server listens on the TCP port 3002.
+Where `NUM_TEST` is a number between 1 and 12. See the file [tests_release.config](scripts/tests/tests_release.config) for more information.
+
+### Start the database
+
+To start and run the database do:
+
+```shell
+$ ./_build/default/rel/aql/bin/env foreground
+```
+
+### Erlang Shell and AQL Shell
+
+To get an erlang shell run `make shell`. If you want an AQL shell to directly execute queries
+(the shell is simple and primitive) run `make aqlshell`.
+
+### HTTP server and Protobuf protocol
+
+Clients can communicate with AQL in two ways. Through an HTTP, or TCP + Protobuf.
+The default port of the Protobuf interface is 8321, the default port of the HTTP server is 8322.
+More information about the HTTP server and Protobuf protocol can be found in the file [docs/http_and_protobuf.md](docs/http_and_protobuf.md).
+
+### Benchmarking (FMKe)
+
+It's possible to benchmark AQL with the [FMKe benchmark](https://github.com/goncalotomas/FMKe).
+More information on how to do this is available in the file [docs/fmke_benchmark.md](docs/fmke_benchmark.md). You should also check [FMKe's wiki](https://github.com/goncalotomas/FMKe/wiki) for more information.
+
+---
+
+## Docker
+
+There is an AQL docker image available [here](https://hub.docker.com/r/jbmarques/aql).
+
+Start a local node with the following command:
+
+```shell
+$ docker run -d --name aql -p "8321:8321" jbmarques/aql
+```
+
+AQL should now be running on port 8321 on localhost. You can connect to the
+console of a local node with the following command:
+
+```shell
+$ docker exec -it aql /aql/bin/env remote_console
+```
+
+You can also use the existing [Dockerfile](Dockerfile) as a guide to build a custom docker image.
+
+---
 
 ## Getting started
 
 AQL is an SQL-variant, designed to work with AntidoteDB API.
-
-### Shell
-AQL provides a shell mode, which is the easiest way to use the
-client. In AQL's shell mode (command `make aqlshell`), you'll see a prompt like this:
-```
-    AQL>
-```
-Use the prompt to input AQL statements.
 
 ### API
 
@@ -80,22 +93,26 @@ final results.
 
 Similarly, the `read_file` supports two headers as well:
 * `read_file(Filename)` receives a file name, reads and parses a file with AQL statements and returns the result of applying the statements on the database;
-* `read_file(Filename, Transaction)` receives a file name and a transaction descriptor reads and parses a file 
+* `read_file(Filename, Transaction)` receives a file name and a transaction descriptor reads and parses a file
 
 Therefore, exist two ways of performing a query in AQL. For instance, consider a query to show
 all existing tables in the database, While using the Erlang shell mode (activated through
 the `make shell` command) this query can me submitted as the following:
-```Erlang
+
+```erlang
 aql:query("SHOW TABLES").
 ```
+
 or
-```Erlang
+
+```erlang
 aql:query("SHOW TABLES;", TxId).
 ```
 This latter example assumes you started a transaction previously (see next section).
 While using the native AQL shell (through the `make aqlshell`), this query is submitted on its raw form, like the following:
+
 ```
-    AQL> SHOW TABLES;
+AQL> SHOW TABLES;
 ```
 
 ## AQL Docs
@@ -126,9 +143,9 @@ AQL supports a limited set of types:
 ### CREATE TABLE
 
 Creates a new table. If the table already exists the new table will overwrite it
- (any concurrent conflicts will be resolved with a *Last Writer Wins* CRP).
+(any concurrent conflicts will be resolved with a *Last Writer Wins* CRP).
 
-```SQL
+```sql
 CREATE UPDATE-WINS TABLE Student (
 	StudentID INT PRIMARY KEY,
 	Name VARCHAR,
@@ -144,7 +161,7 @@ The primary key constraint must be specified after the column which is to be
 set as the primary key (multiple columns as primary keys are not supported).
 Any datatype can be a primary key.
 
-Primary keys only guarantee uniqueness. Although, if two rows with the same 
+Primary keys only guarantee uniqueness. Although, if two rows with the same
 primary key are inserted (either concurrently or not), both insertions will be
 merged, and all columns will also be merged according to its datatypes.
 
@@ -152,7 +169,8 @@ merged, and all columns will also be merged according to its datatypes.
 
 AQL also supports constraints on counters (`counter_int`). Assign numeric bounds
 to any `COUNTER_INT` column by:
-```SQL
+
+```sql
 CHECK (column_name [ < | <= | > | >= ] value)
 ```
 
@@ -163,8 +181,7 @@ Where `column_name` is the column and `value` is the respective bound.
 You can also define a default value for a record (not allowed in primary keys).
 Default values are used when no value is specified for a record.
 
-Syntax:
-```SQL
+```sql
 column_x data_type DEFAULT value
 ```
 
@@ -173,10 +190,10 @@ Where `value` is the default value.
 #### Foreign Keys
 
 Foreign keys allow users to create custom relations between elements of different
-tables. To create a foreign key relation simply add to the column that will be 
-the foreign key: `FOREIGN KEY [ UPDATE-WINS | DELETE-WINS ] REFERENCES parentTable(parentColumn) [ ON DELETE CASCADE ]`, 
+tables. To create a foreign key relation simply add to the column that will be
+the foreign key: `FOREIGN KEY [ UPDATE-WINS | DELETE-WINS ] REFERENCES parentTable(parentColumn) [ ON DELETE CASCADE ]`,
 where `parentTable` is the parent table name (e.g. `Passport`) and `parentColumn` is
-the parent column name (e.g. `id`). All foreign keys must point to columns with a 
+the parent column name (e.g. `id`). All foreign keys must point to columns with a
 unique constraint, which is only guaranteed in primary keys.
 
 Additionally you can define a row's behaviour upon a parent deletion through the notation
@@ -194,7 +211,8 @@ update of child rows.
 
 The CREATE TABLE statement allows to partition a table by column, which is most known as horizontal partitioning.
 Hence, to partition a table use:
-```SQL
+
+```sql
 PARTITION ON (column_name);
 ```
 , which indicates that the table will split its rows by the column `column_name`.
@@ -203,21 +221,24 @@ PARTITION ON (column_name);
 
 SELECT is the main read operation in AQL (similar to SQL). The operation issues
 a read operation in the database engine (AntidoteDB).
-```SQL
+
+```sql
 SELECT * FROM Student WHERE StudentID = 20;
 ```
 
 This operation supports conjunctions (`AND`) and disjunctions (`OR`), and parenthesis to group sub-queries.
 A sub-query may be a sequence of one or more comparisons on the form:
-```SQL
+
+```
 column_name [ = | <> | < | <= | > | >= ] value
 ```
 
 ### INSERT
 
 Inserts new records in a table. If a value with the primary key already exists it
- will be overwritten.
-```SQL
+will be overwritten.
+
+```sql
 INSERT INTO (StudentID, Name, Age, YearsLeft, Passport_id) VALUES (10000, 'John', 'Smith', '24', 'ABC');
 ```
 
@@ -228,7 +249,7 @@ The table columns may be omitted, in which case all columns will be considered o
 
 Updates an already-existent row on the specified table.
 
-```SQL
+```sql
 UPDATE Student
 SET Age = 25
 WHERE StudentID = 10000;
@@ -245,25 +266,25 @@ sets column `Age` to value `25`. All update operations on columns are based on e
   * `Col = true` sets the boolean column `Col` to `true`.
   * `Col = false` sets the boolean column `Col` to `false`.
   * In both cases, the boolean value to assign is not enclosed between single quotes.
-  
+
 Unlike the SELECT clause, the WHERE clause on the UPDATE statement can only filter primary keys.
-  
+
 ### DELETE
 
 Deletes a set of records from the specified table.
 
-```SQL
+```sql
 DELETE FROM Persons Where StudentID = 20525;
 ```
 
 Just like in an UPDATE operation, the WHERE clause can only filter primary keys.
 If the WHERE clause is absent, all the records in the table are deleted.
 
-
 ### TRANSACTION
 
 Just like in SQL, AQL allows to execute a set of queries inside a transaction.
-```SQL
+
+```sql
 BEGIN TRANSACTION;
 query_1;
 query_2;
