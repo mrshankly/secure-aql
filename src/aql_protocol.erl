@@ -107,7 +107,9 @@ handle_message(_Socket, _Transport, Request) ->
 split_tables(TableNames) ->
     lists:map(fun binary_to_atom/1, string:split(TableNames, ",", all)).
 
-parse_query(Query) ->
+parse_query(Query) when is_binary(Query) ->
+    parse_query(binary_to_list(Query));
+parse_query(Query) when is_list(Query) ->
     case scanner:string(Query) of
         {ok, Tokens, _} ->
             parser:parse(Tokens);
@@ -139,6 +141,8 @@ run_query(Query, Transaction) ->
                 _:Error ->
                     #'Response'{query_error = utils:reason_to_binary(Error)}
             end;
+        {error, Reason} ->
+            #'Response'{query_error = utils:reason_to_binary(Reason)};
         {error, Reason, _Line} ->
             #'Response'{query_error = utils:reason_to_binary(Reason)}
     end.

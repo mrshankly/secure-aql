@@ -118,11 +118,15 @@ result_strings_to_binary([QueryResult | Rest], Acc) when is_list(QueryResult) ->
         QueryResult
     ),
     result_strings_to_binary(Rest, [BinQueryResult | Acc]);
+result_strings_to_binary([{error, Reason} | Rest], Acc) ->
+    result_strings_to_binary(Rest, [{error, reason_to_binary(Reason)} | Acc]);
 result_strings_to_binary([QueryResult | Rest], Acc) ->
     result_strings_to_binary(Rest, [QueryResult | Acc]);
 result_strings_to_binary([], Acc) ->
     lists:reverse(Acc).
 
+reason_to_binary(Reason) when is_list(Reason) ->
+    list_to_binary(Reason);
 reason_to_binary(Reason) ->
     list_to_binary(lists:flatten(io_lib:format("~p", [Reason]))).
 
@@ -142,6 +146,7 @@ result_strings_to_binary_test() ->
     Result = [
         ok,
         {error, "not found"},
+        {error, {1,"not found"}},
         [
             [{name, "John Doe"}, {age, 35}, {country, "USA"}],
             [{name, "Jane Doe"}, {age, 33}, {country, "USA"}]
@@ -149,7 +154,8 @@ result_strings_to_binary_test() ->
     ],
     Expected = [
         ok,
-        {error, "not found"},
+        {error, <<"not found">>},
+        {error, <<"{1,\"not found\"}">>},
         [
             [{name, <<"John Doe">>}, {age, 35}, {country, <<"USA">>}],
             [{name, <<"Jane Doe">>}, {age, 33}, {country, <<"USA">>}]
