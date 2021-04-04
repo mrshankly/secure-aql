@@ -20,7 +20,7 @@ FMKe is split into 3 components: an application server, populator and client. Yo
 
 2. **FMKe application server**: Clone the repository from [https://github.com/goncalotomas/FMKe](https://github.com/goncalotomas/FMKe) and modify the file `config/fmke.config` accordingly, the `target_database` should be `aql`.
 
-3. **FMKe application server**: It's possible that the AQL client that FMKe is using is outdated. You can try to run the benchmark without updating the AQL client, but if you encounter any errors, try to upgrade the AQL client. Inside the FMKe application server directory, modify the `rebar.conf` file, in the `deps` section, to the newest version of `aqlc`, once that is done, do the following:
+3. **FMKe application server**: It's possible that the AQL client that FMKe is using is outdated. You can try to run the benchmark without updating the AQL client, but if you encounter any errors, try to upgrade the AQL client. Inside the FMKe application server directory, modify the `rebar.conf` file, inside the `deps` section, change `aqlc` version to the latest. Once that is done, do the following:
 
     ```shell
     $ rebar3 unlock aqlc
