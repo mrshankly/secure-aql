@@ -4,6 +4,8 @@ This document provides an outline of the steps you need to take to run the FMKe 
 
 It doesn't really matter which database you are benchmarking, the way you run FMKe is basically the same for all of them. Read the [FMKe wiki](https://github.com/goncalotomas/FMKe/wiki) to know more.
 
+**NOTE**: Have a look at this pull request [https://github.com/goncalotomas/FMKe/pull/219](https://github.com/goncalotomas/FMKe/pull/219), if it's not closed then AQL support is not upstream yet and you will have to use the branch from that pull request.
+
 ## Requirements
 
 To run the FMKe benchmark you will need to have installed the following:
